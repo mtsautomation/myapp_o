@@ -18,16 +18,30 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    data = request.get_json()
-    if data and 'entry' in data:
-        for entry in data['entry']:
-            for change in entry['changes']:
-                value = change.get('value', {})
-                messages = value.get('messages', [])
-                for message in messages:
-                    sender = message.get('from')  # Sender's phone number
-                    text = message.get('text', {}).get('body')  # Text message content
-                    print(f"Message from {sender}: {text}")
+    # Check if the request contains JSON data
+    if not request.is_json:
+        print("Invalid content type, expected JSON.")
+        return jsonify({"error": "Invalid content type, expected JSON"}), 400
+
+    try:
+        data = request.get_json()  # Parse the JSON payload
+        if data and 'entry' in data:
+            for entry in data['entry']:
+                for change in entry.get('changes', []):
+                    value = change.get('value', {})
+                    messages = value.get('messages', [])
+                    for message in messages:
+                        sender = message.get('from')  # Sender's phone number
+                        text = message.get('text', {}).get('body')  # Text message content
+                        print(f"Message from {sender}: {text}")
+        else:
+            print("Invalid JSON structure: 'entry' key is missing.")
+            return jsonify({"error": "Invalid JSON structure"}), 400
+    except Exception as e:
+        # Handle unexpected errors gracefully
+        print(f"Error processing the request: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
     return "EVENT_RECEIVED", 200
 
 if __name__ == '__main__':
