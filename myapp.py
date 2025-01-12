@@ -149,9 +149,14 @@ def get_media_url(media_id):
         return None
 
 
-def send_message(sender, text, image_url, date, hour,contact):
+def send_message(sender, text, image_url, date, hour, contact):
+    print("Creating message")
+    # Get data from the request
+    recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
+
     def sending(mess):
 
+        print("About to send the message")
         # WhatsApp API endpoint
         url = f"https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages"
 
@@ -179,8 +184,6 @@ def send_message(sender, text, image_url, date, hour,contact):
             return response.status_code
 
     try:
-        # Get data from the request
-        recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
         if image_url == "":
             assignation = text
@@ -246,7 +249,10 @@ def send_message(sender, text, image_url, date, hour,contact):
                     columns[9] = "MOTOSUR"
                 rows.append(columns)
             msgs = pd.DataFrame(rows, columns=final_header)
+            print('Los mensajes a enviar son:')
+            print(msgs)
             for message in msgs[:-1]:
+                
                 final_message = f"Hola {contact['name']} buenos dias/tardes, tenemos una cativacíon para la tienda " \
                                 f"{message['# Tienda']} de {message['RETAIL']} en {message['ZONA/CD']} de una " \
                                 f"motocicleta {message['MODELO']} con numero de serie {message['CHASIS']} y fecha de " \
