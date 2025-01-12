@@ -101,7 +101,7 @@ def get_media_url(media_id):
 
     response = requests.request("GET", media_url, headers=headers, data=payload)
 
-    print(response.text)
+    
 
     return response
 def send_message(sender, text, image_url, date, hour):
