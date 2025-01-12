@@ -37,6 +37,8 @@ def receive_message():
                 contact_df = contacts()
                 print('Database shops was successfully uploaded')
                 sender = "+" + message['from']
+                print(sender, len(sender))
+                print(contact_df[contact_df['principalPhoneNUmber'] == sender])
                 print(sender in contact_df['principalPhoneNumber'])
                 if sender in contact_df['principalPhoneNumber']:
                     subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
