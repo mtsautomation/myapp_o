@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 # WhatsApp API credentials (replace with your actual token)
 ACCESS_TOKEN = "EAANEdLMCZCT0BOw2pHfxwr9eOvzeSWlDq928hDOR8ZBpjM6kbp5a46tHvOFRZBJh6e5nFuf9eQwnpiFDKNkeRGZCGiWPIVdSS8YF4yXZCFKsHLeCeXqripQZAbkeLkZCAcYhU7S0VxBkoI3ZChqSGvEUR7EB5KEeb4GMlH04mHzBY5uA0UAUC9MNKckq9MECgbh6sAZDZD"
-
+PHONE_NUMBER_ID = "556402947548969"
 
 # Webhook verification
 @app.route('/webhook', methods=['GET'])
@@ -48,11 +48,13 @@ def receive_message():
                             # Fetch the image URL using the media API
                             image_url = get_media_url(image_id)
                             print(f"Direct URL to image: {image_url}")
-
+                            send_message(sender, caption, image_url, time)
                             return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
                         elif message_type == 'text':
+                            image_url = ""
                             text = message.get('text', {}).get('body')  # Text message content
+                            send_message(sender, text, image_url , time)
                             print(f"Received a message from {sender}. Message: {text} at {time}")
 
         return "EVENT_RECEIVED", 200
@@ -66,7 +68,7 @@ def receive_message():
 def get_media_url(media_id):
     # Get media URL from WhatsApp
     media_url_response = requests.get(
-        f"https://graph.facebook.com/v17.0/{media_id}",
+        f"https://graph.facebook.com/v21.0/{media_id}",
         headers={"Authorization": f"Bearer {ACCESS_TOKEN}"}
     )
     if media_url_response.status_code != 200:
@@ -74,10 +76,51 @@ def get_media_url(media_id):
         return None
 
     # Extract and return the URL
-    print(media_url_response)
     media_url = media_url_response.json().get('url')
 
     return media_url
+
+def send_message(sender, text, image_url, time):
+    try:
+        # Get data from the request
+        recipient_number = '+529994072776'  # Recipient's phone number (in E.164 format)
+
+        if image_url == "":
+            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time}"  # Message text
+        else:
+            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time} y este URL{image_url}"  # Message text
+
+        if not recipient_number or not message_text:
+            return jsonify({"error": "Recipient number and message are required"}), 400
+
+        # WhatsApp API endpoint
+        url = f"https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages"
+
+        # API request headers
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json"
+        }
+
+        # API request payload
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": recipient_number,
+            "type": "text",
+            "text": {"body": message_text}
+        }
+
+        # Send the message
+        response = requests.post(url, json=payload, headers=headers)
+
+        # Check response status
+        if response.status_code == 200:
+            return jsonify({"status": "Message sent successfully", "response": response.json()}), 200
+        else:
+            return jsonify({"error": "Failed to send message", "details": response.json()}), response.status_code
+
+    except Exception as e:
+        return jsonify({"error": "An error occurred", "details": str(e)}), 500
 
 
 if __name__ == '__main__':
