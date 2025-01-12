@@ -81,29 +81,34 @@ def receive_message():
 
 
 # Helper function to fetch the media URL
+import requests
+
 def get_media_url(media_id):
-    # Get media URL from WhatsApp
-    media_url_response = requests.get(
-        f"https://graph.facebook.com/v21.0/{media_id}",
-        headers={"Authorization": f"Bearer {ACCESS_TOKEN}"}
-    )
-    if media_url_response.status_code != 200:
-        print(f"Failed to get media URL: {media_url_response.text}")
+    # Endpoint for retrieving media URL
+    url = f"https://graph.facebook.com/v21.0/{media_id}"
+
+    # Request headers
+    headers = {"Authorization": f"Bearer {ACCESS_TOKEN}"}
+
+    try:
+        # Make the GET request
+        response = requests.get(url, headers=headers)
+
+        # Check for success
+        if response.status_code == 200:
+            # Parse the JSON response
+            media_url = response.json().get('url')
+            return media_url
+        else:
+            # Log the error
+            print(f"Failed to get media URL: {response.status_code} - {response.text}")
+            return None
+    except requests.RequestException as e:
+        # Handle request exceptions
+        print(f"An error occurred while fetching the media URL: {e}")
         return None
 
-    # Extract and return the URL
-    media_url = media_url_response.json().get('url')
 
-    payload = {}
-    headers = {
-        'Authorization': f"Bearer {ACCESS_TOKEN}"
-    }
-
-    response = requests.request("GET", media_url, headers=headers, data=payload)
-
-    
-
-    return response
 def send_message(sender, text, image_url, date, hour):
     try:
         # Get data from the request
