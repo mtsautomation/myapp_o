@@ -60,13 +60,13 @@ def receive_message():
                     # Fetch the image URL using the media API
                     image_url = get_media_url(image_id)
                     print(f"Direct URL to image: {image_url}")
-                    send_message(sender, caption, image_url, date, hour)
+                    #send_message(sender, caption, image_url, date, hour)
                     return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
                 elif message_type == 'text':
                     image_url = ""
                     text = message['text']['body']  # Text message content
-                    send_message(sender, text, image_url, date, hour)
+                    #send_message(sender, text, image_url, date, hour)
                     print(f"Received a message from {sender}. Message: {text} at {hour} on {date}")
 
         except KeyError as e:
