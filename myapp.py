@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-import json  # Import JSON to handle string-to-dict conversion
 
 app = Flask(__name__)
 
@@ -20,28 +19,22 @@ def verify_webhook():
 @app.route('/webhook', methods=['POST'])
 def receive_message():
     try:
-        # Retrieve raw data and attempt to parse it as JSON
-        raw_data = request.data.decode('utf-8')  # Decode raw string
-        try:
-            data = json.loads(raw_data)  # Attempt to parse string to JSON
-            print(type(data))
-        except json.JSONDecodeError:
-            print("Invalid JSON format in request body.")
-            return jsonify({"error": "Invalid JSON format"}), 400
-
+        # Use Flask's built-in JSON parsing
+        data = request.json  # Directly access the JSON payload as a dictionary
+        print(type(data))
+        print(data)
         # Process the JSON data
         if data and 'entry' in data:
             for entry in data['entry']:
                 for change in entry.get('changes', []):
                     value = change.get('value', {})
                     messages = value.get('messages', [])
-                    contacts = value.get('profile', {}).get('wa_id')
 
                     for message in messages:
-                        time = message.get('text',{}).get('timestamp')
+                        timestamp = message.get('timestamp')  # Timestamp of the message
                         sender = message.get('from')  # Sender's phone number
                         text = message.get('text', {}).get('body')  # Text message content
-                        print(f"Message from {sender}: {text}")
+                        print(f"Message from {sender}: {text} at {timestamp}")
         else:
             print("Invalid JSON structure: 'entry' key is missing.")
             return jsonify({"error": "Invalid JSON structure"}), 400
