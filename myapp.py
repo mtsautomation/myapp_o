@@ -24,6 +24,7 @@ def receive_message():
         raw_data = request.data.decode('utf-8')  # Decode raw string
         try:
             data = json.loads(raw_data)  # Attempt to parse string to JSON
+            print(type(data))
         except json.JSONDecodeError:
             print("Invalid JSON format in request body.")
             return jsonify({"error": "Invalid JSON format"}), 400
@@ -31,8 +32,11 @@ def receive_message():
         # Process the JSON data
         if data and 'entry' in data:
             for entry in data['entry']:
+                print("Entry",entry)
                 for change in entry.get('changes', []):
+                    print("Change",change)
                     value = change.get('value', {})
+                    print("Value", value)
                     messages = value.get('messages', [])
                     for message in messages:
                         sender = message.get('from')  # Sender's phone number
@@ -47,7 +51,7 @@ def receive_message():
         print(f"Error processing the request: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-    return "EVENT_RECEIVED", 200
+    return print("EVENT_RECEIVED"), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
