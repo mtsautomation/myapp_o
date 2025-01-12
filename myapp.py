@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify
 import requests
 from datetime import datetime
-import json
 import pandas as pd
-from pandas import json_normalize
 import pymysql
 
 app = Flask(__name__)
