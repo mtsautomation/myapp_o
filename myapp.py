@@ -27,37 +27,39 @@ def receive_message():
     try:
         data = request.json  # Parse incoming JSON payload
         print(data)
+        try:
+            # Navigate through the nested structure
+            messages = data['entry'][0]['changes'][0]['value']['messages']
 
-        """if data and 'entry' in data:
-            for entry in data['entry']:
-                for change in entry.get('changes', []):
-                    value = change.get('value', {})
-                    messages = value.get('messages', [])
+            # Print each message
+            for message in messages:
+                sender = message['from']
 
-                    for message in messages:
-                        time = message.get('text', {}).get('timestamp')
-                        sender = message.get('from')  # Sender's phone number
-                        message_type = message.get('type')  # Type of message
+                timestamp = message['timestamp']
+                message_type = message.get('type')  # Type of message
 
-                        # Handle image messages
-                        if message_type == 'image':
-                            image_data = message.get('image', {})
-                            image_id = image_data.get('id')  # Media ID of the image
-                            caption = image_data.get('caption', 'No caption')  # Optional caption
+                # Handle image messages
+                if message_type == 'image':
+                    image_data = message.get('image', {})
+                    image_id = image_data.get('id')  # Media ID of the image
+                    caption = image_data.get('caption', 'No caption')  # Optional caption
 
-                            print(f"Received an image from {sender}. Caption: {caption} at {time}")
+                    print(f"Received an image from {sender}. Caption: {caption} at {timestamp}")
 
-                            # Fetch the image URL using the media API
-                            image_url = get_media_url(image_id)
-                            print(f"Direct URL to image: {image_url}")
-                            # send_message(sender, caption, image_url, time)
-                            return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+                    # Fetch the image URL using the media API
+                    image_url = get_media_url(image_id)
+                    print(f"Direct URL to image: {image_url}")
+                    # send_message(sender, caption, image_url, time)
+                    return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
-                        elif message_type == 'text':
-                            image_url = ""
-                            text = message.get('text', {}).get('body')  # Text message content
-                            # send_message(sender, text, image_url , time)
-                            print(f"Received a message from {sender}. Message: {text} at {time}")"""
+                elif message_type == 'text':
+                    image_url = ""
+                    text = message['text']['body']  # Text message content
+                    # send_message(sender, text, image_url , time)
+                    print(f"Received a message from {sender}. Message: {text} at {timestamp}")
+
+        except KeyError as e:
+            print(f"KeyError: {e}. Check the structure of your JSON data.")
 
         return "Event_received", 200
 
