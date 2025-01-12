@@ -35,6 +35,7 @@ def receive_message():
             # Print each message
             for message in messages:
                 contact_df = contacts()
+                print('Contacts actualizado')
                 sender = message['from']
                 if sender in contact_df['principalPhoneNumber']:
                     subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
@@ -92,7 +93,7 @@ def contacts():
             password="Motosur2025",
             database="bajaj_shops"
         )
-        print("Successfully connected!")
+
 
         # SQL Query
         query = "SELECT * FROM shops;"  # Replace with your table name
@@ -105,6 +106,7 @@ def contacts():
 
         # Convert result to DataFrame
         contacts_df = pd.DataFrame(result, columns=columns)
+        print("Successfully connected!")
         return contacts_df
 
     except pymysql.MySQLError as e:
@@ -252,7 +254,7 @@ def send_message(sender, text, image_url, date, hour, contact):
             print('Los mensajes a enviar son:')
             print(msgs)
             for message in msgs[:-1]:
-                
+
                 final_message = f"Hola {contact['name']} buenos dias/tardes, tenemos una cativacíon para la tienda " \
                                 f"{message['# Tienda']} de {message['RETAIL']} en {message['ZONA/CD']} de una " \
                                 f"motocicleta {message['MODELO']} con numero de serie {message['CHASIS']} y fecha de " \
