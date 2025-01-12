@@ -168,7 +168,7 @@ def send_message(sender, text, image_url, date, hour,contact):
             "messaging_product": "whatsapp",
             "to": recipient_number,
             "type": "text",
-            "text": {"body": message_text}
+            "text": {"body": mess}
         }
 
         # Send the message
@@ -199,7 +199,7 @@ def send_message(sender, text, image_url, date, hour,contact):
             # The first line is the header
             header = lines[position].split('\t')
             replacement_map = {
-                'TIENDA': 'STORE',
+                'RETAIL': 'STORE',
                 'FECHA': 'FECHA DE SOLICITUD ',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD ',
                 'TIENDA': 'NOMBRE DE TIENDA',
