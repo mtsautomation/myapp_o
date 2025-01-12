@@ -4,13 +4,13 @@ import requests
 app = Flask(__name__)
 
 # WhatsApp API credentials (replace with your actual token)
-ACCESS_TOKEN = "EAANEdLMCZCT0BO0gnZCsXuBQPYi2Hfl5xCbNPWLlj67jgTsYir8pz1bvFNNvokKR4wuuEWLVfwNU4FRK6NiHBxYpZBt6WB0ZByPGfpxsE3aD6EuLFTQagP3CBsEZA6HPsZAssZBbMemSGGt0A4iXDsedMG1jZA4FGf4E7X4qYBurr5JrZBNS0fqvvYHyloLqkpy2geyaEktTXk7IZCy9TzooaYlkkLjjKob5aFfrZBfr22I"
+ACCESS_TOKEN = "EAANEdLMCZCT0BOw2pHfxwr9eOvzeSWlDq928hDOR8ZBpjM6kbp5a46tHvOFRZBJh6e5nFuf9eQwnpiFDKNkeRGZCGiWPIVdSS8YF4yXZCFKsHLeCeXqripQZAbkeLkZCAcYhU7S0VxBkoI3ZChqSGvEUR7EB5KEeb4GMlH04mHzBY5uA0UAUC9MNKckq9MECgbh6sAZDZD"
 
 
 # Webhook verification
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
-    verify_token = "EAANEdLMCZCT0BO0gnZCsXuBQPYi2Hfl5xCbNPWLlj67jgTsYir8pz1bvFNNvokKR4wuuEWLVfwNU4FRK6NiHBxYpZBt6WB0ZByPGfpxsE3aD6EuLFTQagP3CBsEZA6HPsZAssZBbMemSGGt0A4iXDsedMG1jZA4FGf4E7X4qYBurr5JrZBNS0fqvvYHyloLqkpy2geyaEktTXk7IZCy9TzooaYlkkLjjKob5aFfrZBfr22I"
+    verify_token = "EAANEdLMCZCT0BOw2pHfxwr9eOvzeSWlDq928hDOR8ZBpjM6kbp5a46tHvOFRZBJh6e5nFuf9eQwnpiFDKNkeRGZCGiWPIVdSS8YF4yXZCFKsHLeCeXqripQZAbkeLkZCAcYhU7S0VxBkoI3ZChqSGvEUR7EB5KEeb4GMlH04mHzBY5uA0UAUC9MNKckq9MECgbh6sAZDZD"
     mode = request.args.get('hub.mode')
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
