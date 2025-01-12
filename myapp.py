@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import requests
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -26,7 +27,6 @@ def verify_webhook():
 def receive_message():
     try:
         data = request.json  # Parse incoming JSON payload
-        print(data)
         try:
             # Navigate through the nested structure
             messages = data['entry'][0]['changes'][0]['value']['messages']
@@ -36,6 +36,17 @@ def receive_message():
                 sender = message['from']
 
                 timestamp = message['timestamp']
+
+                # Convert the string timestamp to an integer
+                timestamp_int = int(timestamp)
+
+                # Convert the timestamp to a datetime object
+                datetime_obj = datetime.utcfromtimestamp(timestamp_int)
+
+                # Format the datetime object into a readable string
+                date = datetime_obj.strftime('%Y-%m-%d')
+                hour = datetime_obj.strftime('%H:%M:%S')
+
                 message_type = message.get('type')  # Type of message
 
                 # Handle image messages
@@ -44,19 +55,19 @@ def receive_message():
                     image_id = image_data.get('id')  # Media ID of the image
                     caption = image_data.get('caption', 'No caption')  # Optional caption
 
-                    print(f"Received an image from {sender}. Caption: {caption} at {timestamp}")
+                    print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
 
                     # Fetch the image URL using the media API
                     image_url = get_media_url(image_id)
                     print(f"Direct URL to image: {image_url}")
-                    # send_message(sender, caption, image_url, time)
+                    send_message(sender, caption, image_url, date, hour)
                     return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
                 elif message_type == 'text':
                     image_url = ""
                     text = message['text']['body']  # Text message content
-                    # send_message(sender, text, image_url , time)
-                    print(f"Received a message from {sender}. Message: {text} at {timestamp}")
+                    send_message(sender, text, image_url, date, hour)
+                    print(f"Received a message from {sender}. Message: {text} at {hour} on {date}")
 
         except KeyError as e:
             print(f"KeyError: {e}. Check the structure of your JSON data.")
@@ -82,17 +93,28 @@ def get_media_url(media_id):
     # Extract and return the URL
     media_url = media_url_response.json().get('url')
 
-    return media_url
+    payload = {}
+    headers = {
+        'Authorization': f"Bearer {ACCESS_TOKEN}"
+    }
 
-def send_message(sender, text, image_url, time):
+    response = requests.request("GET", media_url, headers=headers, data=payload)
+
+    print(response.text)
+
+    return response.text
+
+def send_message(sender, text, image_url, date, hour):
     try:
         # Get data from the request
         recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
         if image_url == "":
-            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time}"  # Message text
+            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las at {hour} del {date}"
+                            # Message text
         else:
-            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time} y este URL{image_url}"  # Message text
+            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las at {hour} del {date} " \
+                           f"y este URL{image_url}"  # Message text
 
         if not recipient_number or not message_text:
             return "Not recipient number", 400
