@@ -35,10 +35,9 @@ def receive_message():
             # Print each message
             for message in messages:
                 contact_df = contacts()
-                print('Contacts actualizado')
-                sender = message['from']
-                print(type(sender), sender)
-                print(contact_df)
+                print('Database shops was successfully uploaded')
+                sender = "+" + message['from']
+                print(sender in contact_df['principalPhoneNumber'])
                 if sender in contact_df['principalPhoneNumber']:
                     subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
@@ -108,7 +107,6 @@ def contacts():
 
         # Convert result to DataFrame
         contacts_df = pd.DataFrame(result, columns=columns)
-        print("Successfully connected!")
         return contacts_df
 
     except pymysql.MySQLError as e:
