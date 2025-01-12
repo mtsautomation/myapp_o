@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import json  # Import JSON to handle string-to-dict conversion
 
 app = Flask(__name__)
 
@@ -18,13 +19,16 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    # Check if the request contains JSON data
-    if not request.is_json:
-        print("Invalid content type, expected JSON.")
-        return jsonify({"error": "Invalid content type, expected JSON"}), 400
-
     try:
-        data = request.get_json()  # Parse the JSON payload
+        # Retrieve raw data and attempt to parse it as JSON
+        raw_data = request.data.decode('utf-8')  # Decode raw string
+        try:
+            data = json.loads(raw_data)  # Attempt to parse string to JSON
+        except json.JSONDecodeError:
+            print("Invalid JSON format in request body.")
+            return jsonify({"error": "Invalid JSON format"}), 400
+
+        # Process the JSON data
         if data and 'entry' in data:
             for entry in data['entry']:
                 for change in entry.get('changes', []):
@@ -37,6 +41,7 @@ def receive_message():
         else:
             print("Invalid JSON structure: 'entry' key is missing.")
             return jsonify({"error": "Invalid JSON structure"}), 400
+
     except Exception as e:
         # Handle unexpected errors gracefully
         print(f"Error processing the request: {e}")
