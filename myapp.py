@@ -57,11 +57,11 @@ def receive_message():
                             send_message(sender, text, image_url , time)
                             print(f"Received a message from {sender}. Message: {text} at {time}")
 
-        return "EVENT_RECEIVED", 200
+        return 200
 
     except Exception as e:
         print(f"Error processing the request: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        return 500
 
 
 # Helper function to fetch the media URL
@@ -83,7 +83,7 @@ def get_media_url(media_id):
 def send_message(sender, text, image_url, time):
     try:
         # Get data from the request
-        recipient_number = '+529994072776'  # Recipient's phone number (in E.164 format)
+        recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
         if image_url == "":
             message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time}"  # Message text
@@ -91,7 +91,7 @@ def send_message(sender, text, image_url, time):
             message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time} y este URL{image_url}"  # Message text
 
         if not recipient_number or not message_text:
-            return jsonify({"error": "Recipient number and message are required"}), 400
+            return 400
 
         # WhatsApp API endpoint
         url = f"https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages"
@@ -115,12 +115,12 @@ def send_message(sender, text, image_url, time):
 
         # Check response status
         if response.status_code == 200:
-            return jsonify({"status": "Message sent successfully", "response": response.json()}), 200
+            return 200
         else:
-            return jsonify({"error": "Failed to send message", "details": response.json()}), response.status_code
+            return response.status_code
 
     except Exception as e:
-        return jsonify({"error": "An error occurred", "details": str(e)}), 500
+        return 500
 
 
 if __name__ == '__main__':
