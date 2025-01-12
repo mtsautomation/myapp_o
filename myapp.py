@@ -26,7 +26,9 @@ def verify_webhook():
 def receive_message():
     try:
         data = request.json  # Parse incoming JSON payload
-        if data and 'entry' in data:
+        print(data)
+
+        """if data and 'entry' in data:
             for entry in data['entry']:
                 for change in entry.get('changes', []):
                     value = change.get('value', {})
@@ -48,20 +50,20 @@ def receive_message():
                             # Fetch the image URL using the media API
                             image_url = get_media_url(image_id)
                             print(f"Direct URL to image: {image_url}")
-                            send_message(sender, caption, image_url, time)
+                            # send_message(sender, caption, image_url, time)
                             return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
                         elif message_type == 'text':
                             image_url = ""
                             text = message.get('text', {}).get('body')  # Text message content
-                            send_message(sender, text, image_url , time)
-                            print(f"Received a message from {sender}. Message: {text} at {time}")
+                            # send_message(sender, text, image_url , time)
+                            print(f"Received a message from {sender}. Message: {text} at {time}")"""
 
-        return 200
+        return "Event_received", 200
 
     except Exception as e:
         print(f"Error processing the request: {e}")
-        return 500
+        return "There was an error", 500
 
 
 # Helper function to fetch the media URL
@@ -91,7 +93,7 @@ def send_message(sender, text, image_url, time):
             message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las {time} y este URL{image_url}"  # Message text
 
         if not recipient_number or not message_text:
-            return 400
+            return "Not recipient number", 400
 
         # WhatsApp API endpoint
         url = f"https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages"
@@ -115,12 +117,12 @@ def send_message(sender, text, image_url, time):
 
         # Check response status
         if response.status_code == 200:
-            return 200
+            return "Message sent", 200
         else:
             return response.status_code
 
     except Exception as e:
-        return 500
+        return f"Message not sent an error occurred {e}", 500
 
 
 if __name__ == '__main__':
