@@ -30,9 +30,10 @@ def receive_message():
         try:
             # Navigate through the nested structure
             messages = data['entry'][0]['changes'][0]['value']['messages']
-
+            print(len(messages))
             # Print each message
             for message in messages:
+
                 sender = message['from']
 
                 timestamp = message['timestamp']
@@ -100,7 +101,7 @@ def get_media_url(media_id):
 
     response = requests.request("GET", media_url, headers=headers, data=payload)
 
-    print(response)
+    print(response.text)
 
     return response
 def send_message(sender, text, image_url, date, hour):
