@@ -32,13 +32,13 @@ def receive_message():
         # Process the JSON data
         if data and 'entry' in data:
             for entry in data['entry']:
-                print("Entry",entry)
                 for change in entry.get('changes', []):
-                    print("Change",change)
                     value = change.get('value', {})
-                    print("Value", value)
                     messages = value.get('messages', [])
+                    contacts = value.get('profile', {}).get('wa_id')
+
                     for message in messages:
+                        time = message.get('text',{}).get('timestamp')
                         sender = message.get('from')  # Sender's phone number
                         text = message.get('text', {}).get('body')  # Text message content
                         print(f"Message from {sender}: {text}")
@@ -51,7 +51,7 @@ def receive_message():
         print(f"Error processing the request: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-    return print("EVENT_RECEIVED"), 200
+    return "EVENT_RECEIVED", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
