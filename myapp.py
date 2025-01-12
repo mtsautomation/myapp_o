@@ -74,7 +74,9 @@ def get_media_url(media_id):
         return None
 
     # Extract and return the URL
+    print(media_url_response)
     media_url = media_url_response.json().get('url')
+
     return media_url
 
 
