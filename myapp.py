@@ -4,7 +4,7 @@ import requests
 app = Flask(__name__)
 
 # WhatsApp API credentials (replace with your actual token)
-ACCESS_TOKEN = "YOUR_WHATSAPP_ACCESS_TOKEN"
+ACCESS_TOKEN = "1427fd4972bd2b4a0490d77bd068385e"
 
 
 # Webhook verification
@@ -50,9 +50,10 @@ def receive_message():
                             print(f"Direct URL to image: {image_url}")
 
                             return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+
                         elif message_type == 'text':
                             text = message.get('text', {}).get('body')  # Text message content
-                            print(f"Received an image from {sender}. Message: {text} at {time}")
+                            print(f"Received a message from {sender}. Message: {text} at {time}")
 
         return "EVENT_RECEIVED", 200
 
