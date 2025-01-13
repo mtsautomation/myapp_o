@@ -72,7 +72,7 @@ def receive_message():
                         text = message['text']['body']  # Text message content
                         send_message(sender, text, image_url, date, hour, subset_contact)
                         print(f"Received a message from {sender} at {hour} on {date}")
-                        return "Message sent", 200
+                    return "Message sent", 200
                 else:
                     return "Event_not_processed", 200
 
@@ -274,7 +274,7 @@ def send_message(sender, text, image_url, date, hour, contact):
                 except Exception as e:
                     return f'Something with {e} happened', 500
 
-            return 'Sending message done', 200    
+            return 'Sending message done', 200
 
         else:
             message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las at {hour} del {date} " \
