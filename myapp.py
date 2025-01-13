@@ -252,9 +252,10 @@ def send_message(sender, text, image_url, date, hour, contact):
             msgs = pd.DataFrame(rows, columns=final_header)
             msgs = msgs.fillna('No data')
 
+
             for index, row in msgs.iterrows():
                 try:
-                    print('Preparing message for row:', index)
+                    print(row)
                     final_message = (f"Hola {contact['name']} buenos dias/tardes, tenemos una activacíon para la tienda\
                                     {row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una \
                                     motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
