@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 import pandas as pd
 import pymysql
+import sys
 
 app = Flask(__name__)
 
@@ -27,67 +28,70 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    logs, contact_df = web_logs()
+    count = 0
+    logs, contact_df = web_logs(count)
     try:
         data = request.json  # Parse incoming JSON payload
         try:
             # Navigate through the nested structure
             messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
+            message_id = messages.get('id')
+            if not message_id:
+                print("There's nothing to process")
+                sys.exit()
 
-            # Print each message
-            for message in messages:
-                message_id = message.get('id')
-                if not message_id:
-                    continue
+            elif logs['message_id'].isin([message_id]).any():
+                print(f"Message {message_id} already processed.")
+                sys.exit()
 
-                if logs['message_id'].isin([message_id]).any():
-                    print(f"Message {message_id} already processed.")
-                    continue
+            else:
                 # Process the message
                 print(f"Processing message {message_id}")
-                timestamp = message['timestamp']
-                text_msg = message['text']['body']
+                timestamp = messages['timestamp']
+                text_msg = messages['text']['body']
                 update_logs(message_id, timestamp, text_msg)  # Create records
 
-                print('Database shops was successfully uploaded')
-                sender = "+" + message['from']
-                if contact_df['principalPhoneNumber'].isin([sender]).any():
-                    subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
+                # Print each message
+                for message in messages:
+                    count = count + 1
+                    sender = "+" + message['from']
+                    if contact_df['principalPhoneNumber'].isin([sender]).any():
+                        subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
-                    # Convert the string timestamp to an integer
+                        # Convert the string timestamp to an integer
 
-                    timestamp_int = int(timestamp)
-                    # Convert the timestamp to a datetime object
-                    datetime_obj = datetime.utcfromtimestamp(timestamp_int)
-                    # Format the datetime object into a readable string
-                    date = datetime_obj.strftime('%Y-%m-%d')
-                    hour = datetime_obj.strftime('%H:%M:%S')
+                        timestamp_int = int(timestamp)
+                        # Convert the timestamp to a datetime object
+                        datetime_obj = datetime.utcfromtimestamp(timestamp_int)
+                        # Format the datetime object into a readable string
+                        date = datetime_obj.strftime('%Y-%m-%d')
+                        hour = datetime_obj.strftime('%H:%M:%S')
 
-                    message_type = message.get('type')  # Type of message
+                        message_type = message.get('type')  # Type of message
 
-                    # Handle image messages
-                    if message_type == 'image':
-                        image_data = message.get('image', {})
-                        image_id = image_data.get('id')  # Media ID of the image
-                        caption = image_data.get('caption', 'No caption')  # Optional caption
+                        # Handle image messages
+                        if message_type == 'image':
+                            image_data = message.get('image', {})
+                            image_id = image_data.get('id')  # Media ID of the image
+                            caption = image_data.get('caption', 'No caption')  # Optional caption
 
-                        print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
+                            print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
 
-                        # Fetch the image URL using the media API
-                        image_url = get_media_url(image_id)
-                        print(f"Direct URL to image: {image_url}")
-                        # send_message(sender, caption, image_url, date, hour)
-                        return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+                            # Fetch the image URL using the media API
+                            image_url = get_media_url(image_id)
+                            print(f"Direct URL to image: {image_url}")
+                            # send_message(sender, caption, image_url, date, hour)
+                            return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
-                    elif message_type == 'text':
-                        image_url = ""
-                        text = message['text']['body']  # Text message content
-                        send_message(sender, text, image_url, date, hour, subset_contact)
-                        print(f"Received a message from {sender} at {hour} on {date}")
+                        elif message_type == 'text':
+                            image_url = ""
+                            text = message['text']['body']  # Text message content
+                            send_message(sender, text, image_url, date, hour, subset_contact)
+                            print(f"Received a message from {sender} at {hour} on {date}")
 
-                    return "Message sent", 200
-                else:
-                    return "Event_not_processed", 200
+                        return "Message sent", 200
+                    else:
+                        return "Event_not_processed", 200
 
         except KeyError as e:
             print(f"KeyError: {e}. Check the structure of your JSON data.")
@@ -99,7 +103,8 @@ def receive_message():
         return "There was an error", 500
 
 
-def web_logs():
+def web_logs(count):
+    print(f"Here in web_logs {count} times")
     try:
         # Establish connection
         connection = pymysql.connect(
@@ -116,7 +121,6 @@ def web_logs():
         with connection.cursor() as cursor:
             cursor.execute(query)
             result = cursor.fetchall()  # Fetch all rows
-            print("wbelogs.railway_logs.after_result")
             columns = [desc[0] for desc in cursor.description]  # Get column names
 
         # Convert result to DataFrame
@@ -129,7 +133,6 @@ def web_logs():
         with connection.cursor() as cursor:
             cursor.execute(query)
             result = cursor.fetchall()  # Fetch all rows
-            print("wbelogs.shop.after_result")
             columns = [desc[0] for desc in cursor.description]  # Get column names
 
         # Convert result to DataFrame
