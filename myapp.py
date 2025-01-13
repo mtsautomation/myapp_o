@@ -13,11 +13,12 @@ PHONE_NUMBER_ID = "556402947548969"
 # Webhook verification
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
+
     verify_token = ACCESS_TOKEN
     mode = request.args.get('hub.mode')
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
-
+    print("Webhook invoqued")
     if mode == "subscribe" and token == verify_token:
         return challenge, 200
     else:
@@ -115,6 +116,7 @@ def web_logs():
         with connection.cursor() as cursor:
             cursor.execute(query)
             result = cursor.fetchall()  # Fetch all rows
+            print("wbelogs.railway_logs.after_result")
             columns = [desc[0] for desc in cursor.description]  # Get column names
 
         # Convert result to DataFrame
@@ -127,6 +129,7 @@ def web_logs():
         with connection.cursor() as cursor:
             cursor.execute(query)
             result = cursor.fetchall()  # Fetch all rows
+            print("wbelogs.shop.after_result")
             columns = [desc[0] for desc in cursor.description]  # Get column names
 
         # Convert result to DataFrame
