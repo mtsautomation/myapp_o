@@ -33,10 +33,6 @@ def receive_message():
             # Navigate through the nested structure
             messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
 
-            if not messages:
-                print("No 'messages' key found or empty.")
-                return "No messages found", 200
-
             # Print each message
             for message in messages:
                 message_id = message.get('id')
@@ -49,7 +45,7 @@ def receive_message():
                 # Process the message
                 print(f"Processing message {message_id}")
                 timestamp = message['timestamp']
-                update_logs(message_id, timestamp, data)  # Create records
+                update_logs(message_id, timestamp, message)  # Create records
 
                 print('Database shops was successfully uploaded')
                 sender = "+" + message['from']
