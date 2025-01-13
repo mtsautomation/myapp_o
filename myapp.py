@@ -28,6 +28,7 @@ def verify_webhook():
 def receive_message():
     try:
         data = request.json  # Parse incoming JSON payload
+        print(data)
         try:
             # Navigate through the nested structure
             messages = data['entry'][0]['changes'][0]['value']['messages']
