@@ -189,7 +189,6 @@ def send_message(sender, text, image_url, date, hour, contact):
 
         if image_url == "":
             assignation = text
-            print("assign", assignation)
             # Split the message into lines
             lines = assignation.split('\n')
             counting = -1
@@ -253,12 +252,11 @@ def send_message(sender, text, image_url, date, hour, contact):
             msgs = pd.DataFrame(rows, columns=final_header)
             print('Los mensajes a enviar son:')
             print(msgs)
-            for message in msgs[:-1]:
-
+            for index, row in msgs.iterrows() :
                 final_message = f"Hola {contact['name']} buenos dias/tardes, tenemos una cativacíon para la tienda " \
-                                f"{message['# Tienda']} de {message['RETAIL']} en {message['ZONA/CD']} de una " \
-                                f"motocicleta {message['MODELO']} con numero de serie {message['CHASIS']} y fecha de " \
-                                f"solicitud {message[' FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para " \
+                                f"{row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una " \
+                                f"motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de " \
+                                f"solicitud {row[' FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para " \
                                 f"realizar esta activacion. NO OLVIDES--> * LLenar el PDI y * Talon de activacion, " \
                                 f"asi como la fotografia para poder procesar tu pago."
                 sending(final_message)
