@@ -28,10 +28,13 @@ def verify_webhook():
 def receive_message():
     try:
         data = request.json  # Parse incoming JSON payload
-        print(data)
         try:
             # Navigate through the nested structure
-            messages = data['entry'][0]['changes'][0]['value']['messages']
+            messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
+            print(messages)
+            if not messages:
+                print("No 'messages' key found or empty.")
+                return "No messages found", 200
 
             # Print each message
             for message in messages:
