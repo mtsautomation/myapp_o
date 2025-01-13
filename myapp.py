@@ -155,7 +155,7 @@ def update_logs(message_id, timestamp, data):
 
         # Prepare SQL query
         query = """
-        INSERT INTO processed_messages (message_id, timestamp, data)
+        INSERT INTO railway_logs (message_id, timestamp, data)
         VALUES (%s, %s, %s);
         """
 
