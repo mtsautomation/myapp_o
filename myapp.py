@@ -64,7 +64,7 @@ def receive_message():
                         # Fetch the image URL using the media API
                         image_url = get_media_url(image_id)
                         print(f"Direct URL to image: {image_url}")
-                        #send_message(sender, caption, image_url, date, hour)
+                        # send_message(sender, caption, image_url, date, hour)
                         return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
                     elif message_type == 'text':
@@ -94,7 +94,6 @@ def contacts():
             password="Motosur2025",
             database="bajaj_shops"
         )
-
 
         # SQL Query
         query = "SELECT * FROM shops;"  # Replace with your table name
@@ -156,10 +155,10 @@ def send_message(sender, text, image_url, date, hour, contact):
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
     def sending(mess):
-        PHONE_NUMBER_ID = "556402947548969"
+        phone_number_id = "556402947548969"
         print("About to send the message")
         # WhatsApp API endpoint
-        url = f"https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages"
+        url = f"https://graph.facebook.com/v21.0/{phone_number_id}/messages"
 
         # API request headers
         headers = {
@@ -203,13 +202,13 @@ def send_message(sender, text, image_url, date, hour, contact):
                 'RETAIL': 'STORE',
                 'FECHA': 'FECHA DE SOLICITUD ',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD ',
-                'NOMBREDETIENDA':'NOMBRE DE TIENDA',
+                'NOMBREDETIENDA': 'NOMBRE DE TIENDA',
                 'TIENDA': 'NOMBRE DE TIENDA',
                 'MUNICIPIO': 'ZONA/CD',
                 'VIN': 'CHASIS',
                 'NOMBRE CSA / DEALER': 'CSA/DEALER',
                 'CSA DEALER': 'CSA/DEALER',
-                'CSA / DEALER':'CSA/DEALER'
+                'CSA / DEALER': 'CSA/DEALER'
             }
             lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
             # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
@@ -249,18 +248,25 @@ def send_message(sender, text, image_url, date, hour, contact):
                 if columns[9] != "MOTOSUR":
                     columns[9] = "MOTOSUR"
                 rows.append(columns)
+
             msgs = pd.DataFrame(rows, columns=final_header)
 
             for index, row in msgs.iterrows():
-                print('Preparing messages')
-                final_message = (f"Hola {contact['name']} buenos dias/tardes, tenemos una activacíon para la tienda \
-                                {row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una \
-                                motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
-                                solicitud {row[' FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para \
-                                realizar esta activacíon. NO OLVIDES--> * LLenar la Hoja de verificacion PDI \n \
-                                *El Talon de activacíon\n *La fotografia para poder procesar tu pago.")
-                print(final_message)
-                sending(final_message)
+                try:
+                    print('Preparing message for row:', index)
+                    final_message = (f"Hola {contact['name']} buenos dias/tardes, tenemos una activacíon para la tienda\
+                                    {row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una \
+                                    motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
+                                    solicitud {row[' FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para \
+                                    realizar esta activacíon. NO OLVIDES:\n* LLenar la Hoja de verificacion PDI\n \
+                                    *El Talon de activacíon\n *La fotografia para poder procesar tu pago.")
+                    print("Generated message:", final_message)
+                    response = sending(final_message)
+                    print("Sending function response:", response)
+                except KeyError as e:
+                    print(f"KeyError for row {index}: {e}")
+                except Exception as e:
+                    print(f"Error for row {index}: {e}")
         else:
             message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las at {hour} del {date} " \
                            f"y este URL{image_url}"  # Message text
