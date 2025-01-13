@@ -252,16 +252,16 @@ def send_message(sender, text, image_url, date, hour, contact):
 
             msgs = pd.DataFrame(rows, columns=final_header)
             msgs = msgs.fillna('No data')
-            print(final_header)
 
             for index, row in msgs.iterrows():
                 try:
                     final_message = (f"Hola {contact['name']} buenos dias/tardes, tenemos una activacíon para la tienda\
-                                    {row['#Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una \
-                                    motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
+                                    #{row['#TIENDA']} con nombre {row['RETAIL']}de {row['RETAIL']} en {row['ZONA/CD']} \
+                                    de una motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
                                     solicitud {row['FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para \
                                     realizar esta activacíon. NO OLVIDES:\n* LLenar la Hoja de verificacion PDI\n \
                                     *El Talon de activacíon\n *La fotografia para poder procesar tu pago.")
+
                     print("Generated message:", final_message)
                     response = sending(final_message)
                     print("Sending function response:", response)
