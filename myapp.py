@@ -26,9 +26,10 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
+    count = 0
     try:
         data = request.json  # Parse incoming JSON payload
-        if not data or "entry" not in data:
+        if count > 1:
             print("Empty or invalid webhook payload received.")
             return "No data", 200
         else:
@@ -80,6 +81,7 @@ def receive_message():
                             text = message['text']['body']  # Text message content
                             send_message(sender, text, image_url, date, hour, subset_contact)
                             print(f"Received a message from {sender} at {hour} on {date}")
+                            count = count + 1
                         return "Message sent", 200
                     else:
                         return "Event_not_processed", 200
