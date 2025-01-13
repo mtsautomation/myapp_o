@@ -45,7 +45,8 @@ def receive_message():
                 # Process the message
                 print(f"Processing message {message_id}")
                 timestamp = message['timestamp']
-                update_logs(message_id, timestamp, message)  # Create records
+                text_msg = message['text']['body']
+                update_logs(message_id, timestamp, text_msg)  # Create records
 
                 print('Database shops was successfully uploaded')
                 sender = "+" + message['from']
@@ -142,6 +143,7 @@ def web_logs():
             print("Connection closed.")
 
 def update_logs(message_id, timestamp, data):
+    print('Updating row')
     try:
         # Connect to the database
         connection = pymysql.connect(
