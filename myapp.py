@@ -71,7 +71,8 @@ def receive_message():
                         image_url = ""
                         text = message['text']['body']  # Text message content
                         send_message(sender, text, image_url, date, hour, subset_contact)
-                        print(f"Received a message from {sender}. Message: {text} at {hour} on {date}")
+                        print(f"Received a message from {sender} at {hour} on {date}")
+                        return "Message sent", 200
                 else:
                     return "Event_not_processed", 200
 
