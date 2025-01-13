@@ -252,6 +252,7 @@ def send_message(sender, text, image_url, date, hour, contact):
 
             for index, row in msgs.iterrows():
                 print('Preparing messages')
+                print(row)
                 final_message = f"Hola {contact['name']} buenos dias/tardes, tenemos una cativacíon para la tienda " \
                                 f"{row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una " \
                                 f"motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de " \
