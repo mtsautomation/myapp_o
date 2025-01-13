@@ -250,6 +250,7 @@ def send_message(sender, text, image_url, date, hour, contact):
                 rows.append(columns)
 
             msgs = pd.DataFrame(rows, columns=final_header)
+            msgs = msgs.fillna('No data')
 
             for index, row in msgs.iterrows():
                 try:
