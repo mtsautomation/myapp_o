@@ -43,7 +43,7 @@ def receive_message():
                 if not message_id:
                     continue
 
-                if logs['message_id'].isin(message_id).any():
+                if logs['message_id'].isin([message_id]).any():
                     print(f"Message {message_id} already processed.")
                     continue
                 # Process the message
