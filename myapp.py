@@ -28,62 +28,66 @@ def verify_webhook():
 def receive_message():
     try:
         data = request.json  # Parse incoming JSON payload
-        try:
-            # Navigate through the nested structure
-            messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
-            print(messages)
-            if not messages:
-                print("No 'messages' key found or empty.")
-                return "No messages found", 200
+        if not data or "entry" not in data:
+            print("Empty or invalid webhook payload received.")
+            return "No data", 200
+        else:
+            try:
+                # Navigate through the nested structure
+                messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
+                print(messages)
+                if not messages:
+                    print("No 'messages' key found or empty.")
+                    return "No messages found", 200
 
-            # Print each message
-            for message in messages:
-                contact_df = contacts()
-                print('Database shops was successfully uploaded')
-                sender = "+" + message['from']
+                # Print each message
+                for message in messages:
+                    contact_df = contacts()
+                    print('Database shops was successfully uploaded')
+                    sender = "+" + message['from']
 
-                if contact_df['principalPhoneNumber'].isin([sender]).any():
-                    subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
+                    if contact_df['principalPhoneNumber'].isin([sender]).any():
+                        subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
-                    timestamp = message['timestamp']
-                    # Convert the string timestamp to an integer
+                        timestamp = message['timestamp']
+                        # Convert the string timestamp to an integer
 
-                    timestamp_int = int(timestamp)
-                    # Convert the timestamp to a datetime object
-                    datetime_obj = datetime.utcfromtimestamp(timestamp_int)
-                    # Format the datetime object into a readable string
-                    date = datetime_obj.strftime('%Y-%m-%d')
-                    hour = datetime_obj.strftime('%H:%M:%S')
+                        timestamp_int = int(timestamp)
+                        # Convert the timestamp to a datetime object
+                        datetime_obj = datetime.utcfromtimestamp(timestamp_int)
+                        # Format the datetime object into a readable string
+                        date = datetime_obj.strftime('%Y-%m-%d')
+                        hour = datetime_obj.strftime('%H:%M:%S')
 
-                    message_type = message.get('type')  # Type of message
+                        message_type = message.get('type')  # Type of message
 
-                    # Handle image messages
-                    if message_type == 'image':
-                        image_data = message.get('image', {})
-                        image_id = image_data.get('id')  # Media ID of the image
-                        caption = image_data.get('caption', 'No caption')  # Optional caption
+                        # Handle image messages
+                        if message_type == 'image':
+                            image_data = message.get('image', {})
+                            image_id = image_data.get('id')  # Media ID of the image
+                            caption = image_data.get('caption', 'No caption')  # Optional caption
 
-                        print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
+                            print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
 
-                        # Fetch the image URL using the media API
-                        image_url = get_media_url(image_id)
-                        print(f"Direct URL to image: {image_url}")
-                        # send_message(sender, caption, image_url, date, hour)
-                        return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+                            # Fetch the image URL using the media API
+                            image_url = get_media_url(image_id)
+                            print(f"Direct URL to image: {image_url}")
+                            # send_message(sender, caption, image_url, date, hour)
+                            return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
-                    elif message_type == 'text':
-                        image_url = ""
-                        text = message['text']['body']  # Text message content
-                        send_message(sender, text, image_url, date, hour, subset_contact)
-                        print(f"Received a message from {sender} at {hour} on {date}")
-                    return "Message sent", 200
-                else:
-                    return "Event_not_processed", 200
+                        elif message_type == 'text':
+                            image_url = ""
+                            text = message['text']['body']  # Text message content
+                            send_message(sender, text, image_url, date, hour, subset_contact)
+                            print(f"Received a message from {sender} at {hour} on {date}")
+                        return "Message sent", 200
+                    else:
+                        return "Event_not_processed", 200
 
-        except KeyError as e:
-            print(f"KeyError: {e}. Check the structure of your JSON data.")
+            except KeyError as e:
+                print(f"KeyError: {e}. Check the structure of your JSON data.")
 
-        return "Event_received", 200
+            return "Event_received", 200
 
     except Exception as e:
         print(f"Error processing the request: {e}")
