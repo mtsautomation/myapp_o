@@ -200,8 +200,9 @@ def send_message(sender, text, image_url, date, hour, contact):
             header = lines[position].split('\t')
             replacement_map = {
                 'RETAIL': 'STORE',
-                'FECHA': 'FECHA DE SOLICITUD ',
-                'FECHADESOLICITUD': 'FECHA DE SOLICITUD ',
+                'FECHA': 'FECHA DE SOLICITUD',
+                'FECHA DE SOLICITUD ': 'FECHA DE SOLICITUD',
+                'FECHADESOLICITUD': 'FECHA DE SOLICITUD',
                 'NOMBREDETIENDA': 'NOMBRE DE TIENDA',
                 'TIENDA': 'NOMBRE DE TIENDA',
                 'MUNICIPIO': 'ZONA/CD',
@@ -251,15 +252,9 @@ def send_message(sender, text, image_url, date, hour, contact):
 
             msgs = pd.DataFrame(rows, columns=final_header)
             msgs = msgs.fillna('No data')
-            print(final_header)
 
             for index, row in msgs.iterrows():
                 try:
-                    print(row['RETAIL'])
-                    print(row['ZONA/CD'])
-                    print(row['MODELO'])
-                    print(row['CHASIS'])
-                    print(row['FECHA DE SOLICITUD'])
                     final_message = (f"Hola {contact['name']} buenos dias/tardes, tenemos una activacíon para la tienda\
                                     {row['#Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una \
                                     motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
