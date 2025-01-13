@@ -13,7 +13,7 @@ PHONE_NUMBER_ID = "556402947548969"
 # Webhook verification
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
-    verify_token = "EAANEdLMCZCT0BOw2pHfxwr9eOvzeSWlDq928hDOR8ZBpjM6kbp5a46tHvOFRZBJh6e5nFuf9eQwnpiFDKNkeRGZCGiWPIVdSS8YF4yXZCFKsHLeCeXqripQZAbkeLkZCAcYhU7S0VxBkoI3ZChqSGvEUR7EB5KEeb4GMlH04mHzBY5uA0UAUC9MNKckq9MECgbh6sAZDZD"
+    verify_token = ACCESS_TOKEN
     mode = request.args.get('hub.mode')
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
@@ -152,11 +152,11 @@ def get_media_url(media_id):
 
 
 def send_message(sender, text, image_url, date, hour, contact):
-    print("Creating message")
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
     def sending(mess):
+        PHONE_NUMBER_ID = "556402947548969"
         print("About to send the message")
         # WhatsApp API endpoint
         url = f"https://graph.facebook.com/v21.0/{PHONE_NUMBER_ID}/messages"
@@ -203,6 +203,7 @@ def send_message(sender, text, image_url, date, hour, contact):
                 'RETAIL': 'STORE',
                 'FECHA': 'FECHA DE SOLICITUD ',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD ',
+                'NOMBREDETIENDA':'NOMBRE DE TIENDA',
                 'TIENDA': 'NOMBRE DE TIENDA',
                 'MUNICIPIO': 'ZONA/CD',
                 'VIN': 'CHASIS',
@@ -252,13 +253,12 @@ def send_message(sender, text, image_url, date, hour, contact):
 
             for index, row in msgs.iterrows():
                 print('Preparing messages')
-                print(row)
-                final_message = f"Hola {contact['name']} buenos dias/tardes, tenemos una cativacíon para la tienda " \
-                                f"{row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una " \
-                                f"motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de " \
-                                f"solicitud {row[' FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para " \
-                                f"realizar esta activacion. NO OLVIDES--> * LLenar el PDI y * Talon de activacion, " \
-                                f"asi como la fotografia para poder procesar tu pago."
+                final_message = (f"Hola {contact['name']} buenos dias/tardes, tenemos una activacíon para la tienda \
+                                {row['# Tienda']} de {row['RETAIL']} en {row['ZONA/CD']} de una \
+                                motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
+                                solicitud {row[' FECHA DE SOLICITUD']} \n IMPORTANTE: Tenemos 12 hrs para \
+                                realizar esta activacíon. NO OLVIDES--> * LLenar la Hoja de verificacion PDI \n \
+                                *El Talon de activacíon\n *La fotografia para poder procesar tu pago.")
                 print(final_message)
                 sending(final_message)
         else:
