@@ -33,10 +33,10 @@ def receive_message():
             print("Empty or invalid webhook payload received.")
             return "No data", 200
         else:
+            count = count + 1
             try:
                 # Navigate through the nested structure
                 messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
-                print(messages)
                 if not messages:
                     print("No 'messages' key found or empty.")
                     return "No messages found", 200
@@ -81,7 +81,7 @@ def receive_message():
                             text = message['text']['body']  # Text message content
                             send_message(sender, text, image_url, date, hour, subset_contact)
                             print(f"Received a message from {sender} at {hour} on {date}")
-                            count = count + 1
+
                         return "Message sent", 200
                     else:
                         return "Event_not_processed", 200
