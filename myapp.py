@@ -268,13 +268,14 @@ def send_message(sender, text, image_url, date, hour, contact):
                         "* La fotografía para poder procesar tu pago."
                     )
 
-                    print("Generated message:", final_message)
-                    response = sending(final_message)
-                    print("Sending function response:", response)
-                except KeyError as e:
-                    print(f"KeyError for row {index}: {e}")
+                    response_sending = sending(final_message)
+                    print("Sending function response:", response_sending)
+
                 except Exception as e:
-                    print(f"Error for row {index}: {e}")
+                    return f'Something with {e} happened', 500
+
+            return 'Sending message done', 200    
+
         else:
             message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las at {hour} del {date} " \
                            f"y este URL{image_url}"  # Message text
