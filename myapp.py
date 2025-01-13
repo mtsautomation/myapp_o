@@ -255,15 +255,17 @@ def send_message(sender, text, image_url, date, hour, contact):
 
             for index, row in msgs.iterrows():
                 try:
-                    final_message = (f"Hola {contact['contact'].iloc[0]} buenos dias/tardes.\
-                        Tenemos una activacíon para la tienda {row['#TIENDA']} de {row['RETAIL']} en {row['ZONA/CD']} de\
-                                    una motocicleta {row['MODELO']} con numero de serie {row['CHASIS']} y fecha de \
-                                    solicitud {row['FECHA DE SOLICITUD']} \nIMPORTANTE: Tenemos 12 hrs para realizar \
-                                    esta activacíon.\
-                                    NO OLVIDES:\n\
-                                    * LLenar la Hoja de verificacion PDI\n\
-                                    * El Talon de activacíon\n\
-                                    * La fotografia para poder procesar tu pago.")
+                    final_message = (
+                        f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
+                        f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
+                        f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
+                        f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
+                        "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
+                        "NO OLVIDES:\n"
+                        "* Llenar la Hoja de verificación PDI\n"
+                        "* El Talón de activación\n"
+                        "* La fotografía para poder procesar tu pago."
+                    )
 
                     print("Generated message:", final_message)
                     response = sending(final_message)
