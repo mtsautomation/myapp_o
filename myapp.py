@@ -26,77 +26,82 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    count = 0
+    logs, contact_df = web_logs()
     try:
         data = request.json  # Parse incoming JSON payload
-        if count > 1:
-            print("Empty or invalid webhook payload received.")
-            return "No data", 200
-        else:
-            count = count + 1
-            try:
-                # Navigate through the nested structure
-                messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
-                if not messages:
-                    print("No 'messages' key found or empty.")
-                    return "No messages found", 200
+        try:
+            # Navigate through the nested structure
+            messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
 
-                # Print each message
-                for message in messages:
-                    contact_df = contacts()
-                    print('Database shops was successfully uploaded')
-                    sender = "+" + message['from']
+            if not messages:
+                print("No 'messages' key found or empty.")
+                return "No messages found", 200
 
-                    if contact_df['principalPhoneNumber'].isin([sender]).any():
-                        subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
+            # Print each message
+            for message in messages:
+                message_id = message.get('id')
+                if not message_id:
+                    continue
 
-                        timestamp = message['timestamp']
-                        # Convert the string timestamp to an integer
+                if logs['message_id'].isin(message_id).any():
+                    print(f"Message {message_id} already processed.")
+                    continue
+                # Process the message
+                print(f"Processing message {message_id}")
+                timestamp = message['timestamp']
+                update_logs(message_id, timestamp, data)  # Create records
 
-                        timestamp_int = int(timestamp)
-                        # Convert the timestamp to a datetime object
-                        datetime_obj = datetime.utcfromtimestamp(timestamp_int)
-                        # Format the datetime object into a readable string
-                        date = datetime_obj.strftime('%Y-%m-%d')
-                        hour = datetime_obj.strftime('%H:%M:%S')
+                print('Database shops was successfully uploaded')
+                sender = "+" + message['from']
+                if contact_df['principalPhoneNumber'].isin([sender]).any():
+                    subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
-                        message_type = message.get('type')  # Type of message
+                    # Convert the string timestamp to an integer
 
-                        # Handle image messages
-                        if message_type == 'image':
-                            image_data = message.get('image', {})
-                            image_id = image_data.get('id')  # Media ID of the image
-                            caption = image_data.get('caption', 'No caption')  # Optional caption
+                    timestamp_int = int(timestamp)
+                    # Convert the timestamp to a datetime object
+                    datetime_obj = datetime.utcfromtimestamp(timestamp_int)
+                    # Format the datetime object into a readable string
+                    date = datetime_obj.strftime('%Y-%m-%d')
+                    hour = datetime_obj.strftime('%H:%M:%S')
 
-                            print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
+                    message_type = message.get('type')  # Type of message
 
-                            # Fetch the image URL using the media API
-                            image_url = get_media_url(image_id)
-                            print(f"Direct URL to image: {image_url}")
-                            # send_message(sender, caption, image_url, date, hour)
-                            return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+                    # Handle image messages
+                    if message_type == 'image':
+                        image_data = message.get('image', {})
+                        image_id = image_data.get('id')  # Media ID of the image
+                        caption = image_data.get('caption', 'No caption')  # Optional caption
 
-                        elif message_type == 'text':
-                            image_url = ""
-                            text = message['text']['body']  # Text message content
-                            send_message(sender, text, image_url, date, hour, subset_contact)
-                            print(f"Received a message from {sender} at {hour} on {date}")
+                        print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
 
-                        return "Message sent", 200
-                    else:
-                        return "Event_not_processed", 200
+                        # Fetch the image URL using the media API
+                        image_url = get_media_url(image_id)
+                        print(f"Direct URL to image: {image_url}")
+                        # send_message(sender, caption, image_url, date, hour)
+                        return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
 
-            except KeyError as e:
-                print(f"KeyError: {e}. Check the structure of your JSON data.")
+                    elif message_type == 'text':
+                        image_url = ""
+                        text = message['text']['body']  # Text message content
+                        send_message(sender, text, image_url, date, hour, subset_contact)
+                        print(f"Received a message from {sender} at {hour} on {date}")
 
-            return "Event_received", 200
+                    return "Message sent", 200
+                else:
+                    return "Event_not_processed", 200
+
+        except KeyError as e:
+            print(f"KeyError: {e}. Check the structure of your JSON data.")
+
+        return "Event_received", 200
 
     except Exception as e:
         print(f"Error processing the request: {e}")
         return "There was an error", 500
 
 
-def contacts():
+def web_logs():
     try:
         # Establish connection
         connection = pymysql.connect(
@@ -106,7 +111,19 @@ def contacts():
             database="bajaj_shops"
         )
 
-        # SQL Query
+        # SQL Query Logs
+        query = "SELECT * FROM railway_logs;"  # Replace with your table name
+
+        # Execute query and fetch data
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchall()  # Fetch all rows
+            columns = [desc[0] for desc in cursor.description]  # Get column names
+
+        # Convert result to DataFrame
+        logs_df = pd.DataFrame(result, columns=columns)
+
+        # SQL Query contacts
         query = "SELECT * FROM shops;"  # Replace with your table name
 
         # Execute query and fetch data
@@ -117,7 +134,8 @@ def contacts():
 
         # Convert result to DataFrame
         contacts_df = pd.DataFrame(result, columns=columns)
-        return contacts_df
+
+        return logs_df, contacts_df
 
     except pymysql.MySQLError as e:
         print(f"Connection error: {e}")
@@ -126,6 +144,36 @@ def contacts():
         if 'connection' in locals() and connection.open:
             connection.close()
             print("Connection closed.")
+
+def update_logs(message_id, timestamp, data):
+    try:
+        # Connect to the database
+        connection = pymysql.connect(
+            host="database-1.czao0sewwhuc.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="Motosur2025",
+            database="bajaj_shops"
+        )
+
+        # Prepare SQL query
+        query = """
+        INSERT INTO processed_messages (message_id, timestamp, data)
+        VALUES (%s, %s, %s);
+        """
+
+        # Execute query
+        with connection.cursor() as cursor:
+            cursor.execute(query, (message_id, timestamp, data))
+            connection.commit()
+            print(f"Message {message_id} inserted into database.")
+
+    except pymysql.IntegrityError:
+        print(f"Message {message_id} is already processed (duplicate).")
+    except Exception as e:
+        print(f"Database error: {e}")
+    finally:
+        if 'connection' in locals() and connection.open:
+            connection.close()
 
 
 def get_media_url(media_id):
