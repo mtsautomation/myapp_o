@@ -157,7 +157,7 @@ def service_logs():
         )
 
         # SQL Query Logs
-        query = "SELECT * FROM service;"  # Replace with your table name
+        query = "SELECT * FROM services;"  # Replace with your table name
 
         # Execute query and fetch data
         with connection.cursor() as cursor:
