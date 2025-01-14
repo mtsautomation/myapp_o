@@ -69,7 +69,7 @@ def receive_message():
                         # Format the datetime object into a readable string
                         date = datetime_obj.strftime('%Y-%m-%d')
                         hour = datetime_obj.strftime('%H:%M:%S')
-
+                        print(message_type)
                         # Handle image messages
                         if message_type == 'image':
                             image_data = message.get('image', {})
@@ -215,6 +215,7 @@ def get_media_url(media_id):
 
 
 def send_message(sender, text, image_url, date, hour, contact):
+    print(sender, text, image_url, date, hour, contact)
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
@@ -248,7 +249,7 @@ def send_message(sender, text, image_url, date, hour, contact):
             return response.status_code
 
     try:
-
+        print("Preparing values to send the message")
         if image_url == "":
             assignation = text
             # Split the message into lines
