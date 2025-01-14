@@ -55,11 +55,10 @@ def receive_message():
 
                 # Print each message
                 for message in messages:
-                    print("Inside the for")
                     count = count + 1
                     sender = "+" + message['from']
                     if contact_df['principalPhoneNumber'].isin([sender]).any():
-                        print("Inside the if")
+
                         subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
                         # Convert the string timestamp to an integer
@@ -69,7 +68,7 @@ def receive_message():
                         # Format the datetime object into a readable string
                         date = datetime_obj.strftime('%Y-%m-%d')
                         hour = datetime_obj.strftime('%H:%M:%S')
-                        print(message_type)
+
                         # Handle image messages
                         if message_type == 'image':
                             image_data = message.get('image', {})
@@ -215,7 +214,7 @@ def get_media_url(media_id):
 
 
 def send_message(sender, text, image_url, date, hour, contact):
-    print(sender, text, image_url, date, hour, contact)
+
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
@@ -317,7 +316,7 @@ def send_message(sender, text, image_url, date, hour, contact):
 
             msgs = pd.DataFrame(rows, columns=final_header)
             msgs = msgs.fillna('No data')
-
+            print("Before iterrows")
             for index, row in msgs.iterrows():
                 try:
                     final_message = (
