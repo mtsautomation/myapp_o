@@ -51,6 +51,7 @@ def receive_message():
                 timestamp = messages[0]['timestamp']
                 text_msg = messages[0]['text']['body']
                 update_logs(message_id, timestamp, text_msg)  # Create records
+                message_type = messages[0]('type') # Type of message
 
                 # Print each message
                 for message in messages:
@@ -62,15 +63,12 @@ def receive_message():
                         subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
                         # Convert the string timestamp to an integer
-
                         timestamp_int = int(timestamp)
                         # Convert the timestamp to a datetime object
                         datetime_obj = datetime.utcfromtimestamp(timestamp_int)
                         # Format the datetime object into a readable string
                         date = datetime_obj.strftime('%Y-%m-%d')
                         hour = datetime_obj.strftime('%H:%M:%S')
-
-                        message_type = message.get('type')  # Type of message
 
                         # Handle image messages
                         if message_type == 'image':
