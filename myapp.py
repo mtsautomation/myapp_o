@@ -28,231 +28,10 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    count = 0
-    logs, contact_df = web_logs(count)
-    try:
-        data = request.json  # Parse incoming JSON payload
-        try:
-            # Navigate through the nested structure
-            messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
-            print(messages[0]['id'], "Sliced")
-            message_id = messages[0]['id']
-            if not message_id:
-                print("There's nothing to process")
-                sys.exit()
-
-            elif logs['message_id'].isin([message_id]).any():
-                print(f"Message {message_id} already processed.")
-                sys.exit()
-
-            else:
-                # Process the message
-                print(f"Processing message {message_id}")
-                timestamp = messages[0]['timestamp']
-                text_msg = messages[0]['text']['body']
-                update_logs(message_id, timestamp, text_msg)  # Create records
-                message_type = messages[0]['type']  # Type of message
-
-                # Print each message
-                for message in messages:
-                    count = count + 1
-                    sender = "+" + message['from']
-                    if contact_df['principalPhoneNumber'].isin([sender]).any():
-
-                        subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
-
-                        # Convert the string timestamp to an integer
-                        timestamp_int = int(timestamp)
-                        # Convert the timestamp to a datetime object
-                        datetime_obj = datetime.utcfromtimestamp(timestamp_int)
-                        # Format the datetime object into a readable string
-                        date = datetime_obj.strftime('%Y-%m-%d')
-                        hour = datetime_obj.strftime('%H:%M:%S')
-
-                        # Handle image messages
-                        if message_type == 'image':
-                            image_data = message.get('image', {})
-                            image_id = image_data.get('id')  # Media ID of the image
-                            caption = image_data.get('caption', 'No caption')  # Optional caption
-
-                            print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
-
-                            # Fetch the image URL using the media API
-                            image_url = get_media_url(image_id)
-                            print(f"Direct URL to image: {image_url}")
-                            # send_message(sender, caption, image_url, date, hour)
-                            return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
-
-                        elif message_type == 'text':
-                            image_url = ""
-                            text = message['text']['body']  # Text message content
-                            send_message(sender, text, image_url, date, hour, subset_contact)
-                            print(f"Received a message from {sender} at {hour} on {date}")
-
-                        return "Message sent", 200
-                    else:
-                        return "Event_not_processed", 200
-
-        except KeyError as e:
-            print(f"KeyError: {e}. Check the structure of your JSON data.")
-
-        return "Event_received", 200
-
-    except Exception as e:
-        print(f"Error processing the request: {e}")
-        return "There was an error", 500
-
-
-def web_logs(count):
-    print(f"Here in web_logs {count} times")
-    try:
-        # Establish connection
-        connection = pymysql.connect(
-            host="database-1.czao0sewwhuc.us-east-2.rds.amazonaws.com",
-            user="admin",
-            password="Motosur2025",
-            database="bajaj_shops"
-        )
-
-        # SQL Query Logs
-        query = "SELECT * FROM railway_logs;"  # Replace with your table name
-
-        # Execute query and fetch data
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            result = cursor.fetchall()  # Fetch all rows
-            columns = [desc[0] for desc in cursor.description]  # Get column names
-
-        # Convert result to DataFrame
-        logs_df = pd.DataFrame(result, columns=columns)
-
-        # SQL Query contacts
-        query = "SELECT * FROM shops;"  # Replace with your table name
-
-        # Execute query and fetch data
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            result = cursor.fetchall()  # Fetch all rows
-            columns = [desc[0] for desc in cursor.description]  # Get column names
-
-        # Convert result to DataFrame
-        contacts_df = pd.DataFrame(result, columns=columns)
-
-        return logs_df, contacts_df
-
-    except pymysql.MySQLError as e:
-        print(f"Connection error: {e}")
-        return f"Connection error: {e}", 400
-    finally:
-        if 'connection' in locals() and connection.open:
-            connection.close()
-            print("Connection closed.")
-
-def update_logs(message_id, timestamp, data):
-    print('Updating row')
-    try:
-        # Connect to the database
-        connection = pymysql.connect(
-            host="database-1.czao0sewwhuc.us-east-2.rds.amazonaws.com",
-            user="admin",
-            password="Motosur2025",
-            database="bajaj_shops"
-        )
-
-        # Prepare SQL query
-        query = """
-        INSERT INTO railway_logs (message_id, time, data)
-        VALUES (%s, %s, %s);
-        """
-
-        # Execute query
-        with connection.cursor() as cursor:
-            cursor.execute(query, (message_id, timestamp, data))
-            connection.commit()
-            print(f"Message {message_id} inserted into database.")
-
-    except pymysql.IntegrityError:
-        print(f"Message {message_id} is already processed (duplicate).")
-    except Exception as e:
-        print(f"Database error: {e}")
-    finally:
-        if 'connection' in locals() and connection.open:
-            connection.close()
-
-
-def get_media_url(media_id):
-    try:
-        # Step 1: Get the media URL from WhatsApp
-        media_url_response = requests.get(
-            f"https://graph.facebook.com/v21.0/{media_id}",
-            headers={"Authorization": f"Bearer {ACCESS_TOKEN}"}
-        )
-
-        if media_url_response.status_code != 200:
-            print(f"Failed to get media URL: {media_url_response.status_code} - {media_url_response.text}")
-            return None
-
-        # Extract the URL from the response
-        media_url = media_url_response.json().get('url')
-        if not media_url:
-            print("No URL found in the response.")
-            return None
-
-        # Step 2: Request the actual media content
-        response = requests.get(media_url, headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
-
-        if response.status_code == 200:
-            print("Media successfully retrieved.")
-            return media_url  # Return the URL of the media
-        else:
-            print(f"Failed to retrieve media: {response.status_code} - {response.text}")
-            return None
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
-
-
-def send_message(sender, text, image_url, date, hour, contact):
-
-    # Get data from the request
-    recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
-
-    def sending(mess):
-        phone_number_id = "556402947548969"
-        print("About to send the message")
-        # WhatsApp API endpoint
-        url = f"https://graph.facebook.com/v21.0/{phone_number_id}/messages"
-
-        # API request headers
-        headers = {
-            "Authorization": f"Bearer {ACCESS_TOKEN}",
-            "Content-Type": "application/json"
-        }
-
-        # API request payload
-        payload = {
-            "messaging_product": "whatsapp",
-            "to": recipient_number,
-            "type": "text",
-            "text": {"body": mess}
-        }
-
-        # Send the message
-        response = requests.post(url, json=payload, headers=headers)
-
-        # Check response status
-        if response.status_code == 200:
-            return "Message sent", 200
-        else:
-            return response.status_code
-
-    try:
-        print("Preparing values to send the message")
-        if image_url == "":
-            assignation = text
+    def get_message(m_text, m_url):
+        if m_url == "":
             # Split the message into lines
-            lines = assignation.split('\n')
+            lines = m_text.split('\n')
             counting = -1
             position = 0
             for i in range(len(lines)):
@@ -315,39 +94,231 @@ def send_message(sender, text, image_url, date, hour, contact):
                 rows.append(columns)
 
             msgs = pd.DataFrame(rows, columns=final_header)
-            msgs = msgs.fillna('No data')
-            print("Before iterrows")
-            for index, row in msgs.iterrows():
-                try:
-                    final_message = (
-                        f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
-                        f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
-                        f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
-                        f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
-                        "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
-                        "NO OLVIDES:\n"
-                        "* Llenar la Hoja de verificación PDI\n"
-                        "* El Talón de activación\n"
-                        "* La fotografía para poder procesar tu pago."
-                    )
+            msgs = msgs.replace({"": 'No data'}, inplace=True)
+            return msgs
 
-                    response_sending = sending(final_message)
-                    print("Sending function response:", response_sending)
+    logs, contact_df = service_logs()
+    try:
+        data = request.json  # Parse incoming JSON payload
+        messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
+        sender = messages[0]['from']  # Sender number
+        message_id = messages[0]['id']
 
-                except Exception as e:
-                    return f'Something with {e} happened', 500
+        if (contact_df['principalPhoneNumber'].isin([sender]).any()) & (~logs['message_id'].isin([message_id]).any()):
+            timestamp = messages[0]['timestamp']
+            message_type = messages[0]['type']  # Type of message
 
-            return 'Sending message done', 200
+            for message in messages:
+                subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]  # Filter contact info
+                # Transforming timestamp data into a friendly user readable format
+                timestamp_int = int(timestamp)  # Convert the string timestamp to an integer
+                datetime_obj = datetime.utcfromtimestamp(timestamp_int)  # Convert the timestamp to a datetime object
+                date = datetime_obj.strftime('%Y-%m-%d')  # Format the date object into a readable string
+                hour = datetime_obj.strftime('%H:%M:%S')  # Format the hour object into a readable string
 
-        else:
-            message_text = f"{sender}, te ha enviado {text}, desde el numero de prueba a las at {hour} del {date} " \
-                           f"y este URL{image_url}"  # Message text
+                # Handle image messages
+                if message_type == 'image':
+                    image_data = message.get('image', {})
+                    image_id = image_data.get('id')  # Media ID of the image
+                    caption = image_data.get('caption', 'No caption')  # Optional caption
 
-        if not recipient_number or not message_text:
-            return "Not recipient number", 400
+                    print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
+
+                    # Fetch the image URL using the media API
+                    image_url = get_media_url(image_id)
+                    print(f"Direct URL to image: {image_url}")
+                    # send_message(sender, caption, image_url, date, hour)
+                    return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+
+                elif message_type == 'text':
+                    image_url = ""
+                    text = message['text']['body']  # Text message content
+                    message_df = get_message(text, image_url)
+                    # Update logs, spreadsheet and service database
+                    update_services(message_df, message_id)  # Service database
+                    send_message(sender, message_df, date, hour, subset_contact)
+                    print(f"Received a message from {sender} at {hour} on {date}")
+                    return "Message:sent. ", 200
 
     except Exception as e:
-        return f"Any message sent an error occurred {e}", 500
+        print(f"Error processing the request: {e}")
+        return "There was an error", 500
+
+
+# Database functions
+def service_logs():
+    try:
+        # Establish connection
+        connection = pymysql.connect(
+            host="database-1.czao0sewwhuc.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="Motosur2025",
+            database="bajaj_shops"
+        )
+
+        # SQL Query Logs
+        query = "SELECT * FROM service;"  # Replace with your table name
+
+        # Execute query and fetch data
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchall()  # Fetch all rows
+            columns = [desc[0] for desc in cursor.description]  # Get column names
+
+        # Convert result to DataFrame
+        logs_df = pd.DataFrame(result, columns=columns)
+
+        # SQL Query contacts
+        query = "SELECT * FROM shops;"  # Replace with your table name
+
+        # Execute query and fetch data
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchall()  # Fetch all rows
+            columns = [desc[0] for desc in cursor.description]  # Get column names
+
+        # Convert result to DataFrame
+        contacts_df = pd.DataFrame(result, columns=columns)
+
+        return logs_df, contacts_df
+
+    except pymysql.MySQLError as e:
+        print(f"Connection error: {e}")
+        return f"Connection error: {e}", 400
+    finally:
+        if 'connection' in locals() and connection.open:
+            connection.close()
+            print("Connection closed.")
+
+def update_services(df, message_id):
+    print('Updating services database')
+    try:
+        # Connect to the database
+        connection = pymysql.connect(
+            host="database-1.czao0sewwhuc.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="Motosur2025",
+            database="bajaj_shops"
+        )
+
+        # Prepare SQL query
+        query = """
+        INSERT INTO services (systemDate, RETAIL, # TIENDA, FACTURA, FECHA DE SOLICITUD, NOMBRE DE TIENDA, ZONA/CD, 
+                              ESTADO, MODELO, CHASIS, CSA/DEALER, SHOP,message_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s. %s);
+        """
+
+        # Execute query
+        with connection.cursor() as cursor:
+            cursor.execute(query, (df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
+                                   df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
+                                   df['CSA/DEALER'], df['SHOP'],message_id))
+            connection.commit()
+            print(f"Chasis {df['CHASIS']} inserted into database.")
+
+    except pymysql.IntegrityError:
+        print(f"Message {message_id} is already processed (duplicate).")
+    except Exception as e:
+        print(f"Database error: {e}")
+    finally:
+        if 'connection' in locals() and connection.open:
+            connection.close()
+
+# End of database functions
+
+# Image processing
+def get_media_url(media_id):
+    try:
+        # Step 1: Get the media URL from WhatsApp
+        media_url_response = requests.get(
+            f"https://graph.facebook.com/v21.0/{media_id}",
+            headers={"Authorization": f"Bearer {ACCESS_TOKEN}"}
+        )
+
+        if media_url_response.status_code != 200:
+            print(f"Failed to get media URL: {media_url_response.status_code} - {media_url_response.text}")
+            return None
+
+        # Extract the URL from the response
+        media_url = media_url_response.json().get('url')
+        if not media_url:
+            print("No URL found in the response.")
+            return None
+
+        # Step 2: Request the actual media content
+        response = requests.get(media_url, headers={"Authorization": f"Bearer {ACCESS_TOKEN}"})
+
+        if response.status_code == 200:
+            print("Media successfully retrieved.")
+            return media_url  # Return the URL of the media
+        else:
+            print(f"Failed to retrieve media: {response.status_code} - {response.text}")
+            return None
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+# Distribute Messages
+def send_message(sender, text, date, hour, contact):
+
+    # Get data from the request
+    recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
+
+    def sending(mess):
+        phone_number_id = "556402947548969"
+        print("About to send the message")
+        # WhatsApp API endpoint
+        url = f"https://graph.facebook.com/v21.0/{phone_number_id}/messages"
+
+        # API request headers
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}",
+            "Content-Type": "application/json"
+        }
+
+        # API request payload
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": recipient_number,
+            "type": "text",
+            "text": {"body": mess}
+        }
+
+        # Send the message
+        response = requests.post(url, json=payload, headers=headers)
+
+        # Check response status
+        if response.status_code == 200:
+            return "Message sent", 200
+        else:
+            return response.status_code
+
+    try:
+        print("Preparing values to send the message")
+        for index, row in text.iterrows():
+            try:
+                final_message = (
+                    f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
+                    f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
+                    f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
+                    f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
+                    "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
+                    "NO OLVIDES:\n"
+                    "* Llenar la Hoja de verificación PDI\n"
+                    "* El Talón de activación\n"
+                    "* La fotografía para poder procesar tu pago."
+                )
+
+                response_sending = sending(final_message)
+                print("Sending function response:", response_sending)
+                return 'Sending message done', 200
+            except Exception as e:
+                return f'Something with {e} happened creating the message', 500
+
+    except Exception as e:
+        return f'Something with {e} happened preparing the message', 500
 
 
 if __name__ == '__main__':
