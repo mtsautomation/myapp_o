@@ -48,15 +48,17 @@ def receive_message():
             else:
                 # Process the message
                 print(f"Processing message {message_id}")
-                timestamp = messages['timestamp']
-                text_msg = messages['text']['body']
+                timestamp = messages[0]['timestamp']
+                text_msg = messages[0]['text']['body']
                 update_logs(message_id, timestamp, text_msg)  # Create records
 
                 # Print each message
                 for message in messages:
+                    print("Inside the for")
                     count = count + 1
                     sender = "+" + message['from']
                     if contact_df['principalPhoneNumber'].isin([sender]).any():
+                        print("Inside the if")
                         subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]
 
                         # Convert the string timestamp to an integer
