@@ -35,8 +35,7 @@ def receive_message():
         try:
             # Navigate through the nested structure
             messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
-            print(type(messages))
-            print(messages)
+            print(messages[0]['id'], "Sliced")
             message_id = messages[0]['id']
             if not message_id:
                 print("There's nothing to process")
