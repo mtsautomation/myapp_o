@@ -51,7 +51,7 @@ def receive_message():
                 timestamp = messages[0]['timestamp']
                 text_msg = messages[0]['text']['body']
                 update_logs(message_id, timestamp, text_msg)  # Create records
-                message_type = messages[0]('type') # Type of message
+                message_type = messages[0]['type']  # Type of message
 
                 # Print each message
                 for message in messages:
