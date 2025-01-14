@@ -37,7 +37,7 @@ def receive_message():
             messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
             print(type(messages))
             print(messages)
-            message_id = messages.get('id')
+            message_id = messages[0]['id']
             if not message_id:
                 print("There's nothing to process")
                 sys.exit()
