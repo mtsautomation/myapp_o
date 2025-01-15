@@ -323,11 +323,7 @@ def send_message(sender, df, date, hour, contact, message_id):
         df = df.fillna('No data')
         for index, row in df.iterrows():
             try:
-                print(contact['contact'].iloc[0])
-                print(row['RETAIL'])
-
-                print(row['# TIENDA'])
-
+                print(row['CHASIS'])
                 update_services(row, message_id, date, hour)  # Update service database
                 print('Time to process the message before sending')
 
@@ -342,13 +338,12 @@ def send_message(sender, df, date, hour, contact, message_id):
                     "* El Talón de activación\n"
                     "* La fotografía para poder procesar tu pago."
                 )
-                print(final_message)
                 response_sending = sending(final_message)
                 print("Sending function response:", response_sending)
-                return 'Sending message done', 200
+                return 'Sending message done'
             except Exception as e:
-                return f'Something with {e} happened creating the message', 500
-
+                    return f'Something with {e} happened creating the message', 500
+        return "All messages sent", 200
     except Exception as e:
         return f'Something with {e} happened preparing the message', 500
 
