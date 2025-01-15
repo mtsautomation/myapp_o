@@ -218,7 +218,7 @@ def update_services(df, message_id):
         query = """
         INSERT INTO services (systemDate, RETAIL, # TIENDA, FACTURA, FECHA DE SOLICITUD, NOMBRE DE TIENDA, ZONA/CD, 
                               ESTADO, MODELO, CHASIS, CSA/DEALER, SHOP,message_id)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s. %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
 
         # Execute query
