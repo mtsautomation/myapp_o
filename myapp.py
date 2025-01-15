@@ -102,6 +102,7 @@ def get_message(m_text, m_url):
                 'FECHA DE SOLICITUD ': 'FECHA DE SOLICITUD',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD',
                 'NOMBREDETIENDA': 'NOMBRE DE TIENDA',
+                '#TIENDA': '# TIENDA',
                 'TIENDA': 'NOMBRE DE TIENDA',
                 'MUNICIPIO': 'ZONA/CD',
                 'VIN': 'CHASIS',
@@ -150,10 +151,6 @@ def get_message(m_text, m_url):
 
             msgs = pd.DataFrame(rows, columns=final_header)
             # msgs = msgs.replace({"": 'No data'})
-            print("Inside function")
-            print(type(msgs))
-            print(msgs)
-            print("End of function")
             return msgs
 
     except Exception as e:
@@ -208,8 +205,6 @@ def service_logs():
 
 def update_services(df, message_id):
     print('Updating services database')
-    print(type(df))
-    print(df)
     try:
         # Connect to the database
         connection = pymysql.connect(
