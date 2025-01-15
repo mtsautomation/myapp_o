@@ -30,7 +30,6 @@ def verify_webhook():
 def receive_message():
     try:
         logs, contact_df = service_logs()
-        print("First try")
         data = request.json  # Parse incoming JSON payload
         messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
         if not messages:
