@@ -315,10 +315,14 @@ def send_message(sender, df, date, hour, contact, message_id):
         print(type(df))
         for index, row in df.iterrows():
             try:
+                print(contact['contact'].iloc[0])
+                print(row['RETAIL'])
+
+                print(row['# TIENDA'])
+
                 update_services(row, message_id, date, hour)  # Update service database
                 print('Time to process the message before sending')
-                print(contact['contact'].iloc[0])
-                print(row['# TIENDA'])
+
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
                     f"Tenemos una activación para la tienda {row['# TIENDA']} de {row['RETAIL']} "
@@ -330,6 +334,7 @@ def send_message(sender, df, date, hour, contact, message_id):
                     "* El Talón de activación\n"
                     "* La fotografía para poder procesar tu pago."
                 )
+                print(final_message)
                 response_sending = sending(final_message)
                 print("Sending function response:", response_sending)
                 return 'Sending message done', 200
