@@ -284,14 +284,17 @@ def get_media_url(media_id):
 
 
 # Distribute Messages
-def send_message(sender, df, date, hour, contact, message_id):
+import requests  # Ensure this is imported at the top
 
+
+def send_message(sender, df, date, hour, contact, message_id):
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
     def sending(mess):
         phone_number_id = "556402947548969"
         print("About to send the message")
+
         # WhatsApp API endpoint
         url = f"https://graph.facebook.com/v21.0/{phone_number_id}/messages"
 
@@ -309,27 +312,37 @@ def send_message(sender, df, date, hour, contact, message_id):
             "text": {"body": mess}
         }
 
-        # Send the message
-        response = requests.post(url, json=payload, headers=headers)
+        try:
+            # Send the message
+            response = requests.post(url, json=payload, headers=headers)
 
-        # Check response status
-        if response.status_code == 200:
-            return "Message sent", 200
-        else:
-            return response.status_code
+            # Check response status
+            if response.status_code == 200:
+                print(f"Message sent successfully: {response.json()}")
+                return "Message sent", 200
+            else:
+                print(f"Error sending message: {response.status_code}, {response.text}")
+                return f"Error {response.status_code}: {response.text}"
+        except requests.RequestException as req_err:
+            print(f"Request failed: {req_err}")
+            return f"Request failed: {req_err}"
 
     try:
         print("Preparing values to send the message")
-        df = df.fillna('No data')
+        df = df.fillna('No data')  # Replace NaN with 'No data'
         msg_responses = []
+
         for index, row in df.iterrows():
             try:
-                print(row['CHASIS'])
+                print(f"Processing CHASIS: {row.get('CHASIS', 'Unknown')}")
                 update_services(row, message_id, date, hour)  # Update service database
-                print('Time to process the message before sending')
 
+                print('Processing the message before sending')
+                contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
+
+                # Construct the message
                 final_message = (
-                    f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
+                    f"Hola {contact_name}, buenos días/tardes.\n\n"
                     f"Tenemos una activación para la tienda {row['# TIENDA']} de {row['RETAIL']} "
                     f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
                     f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
@@ -339,14 +352,21 @@ def send_message(sender, df, date, hour, contact, message_id):
                     "* El Talón de activación\n"
                     "* La fotografía para poder procesar tu pago."
                 )
+
+                # Send the message
                 response_sending = sending(final_message)
                 msg_responses.append(response_sending)
-            return "Loop done",200
+            except Exception as inner_exception:
+                print(f"Error while processing row {index}: {inner_exception}")
+                msg_responses.append(f"Failed for row {index}: {inner_exception}")
 
-        print("Sending function response:", msg_responses[-1])
+        # Return the last message response
+        print("Sending function response:", msg_responses[-1] if msg_responses else "No responses")
         return "All messages sent", 200
     except Exception as e:
-            return f'Something with {e} happened creating the message', 500
+        print(f"Error occurred: {e}")
+        return f'Something happened while creating the message: {e}', 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
