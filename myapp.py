@@ -222,14 +222,18 @@ def update_services(df, message_id, date, hour):
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
-
+        print((date + hour), df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
+                                   df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
+                                   df['CSA/DEALER'], df['SHOP'], message_id)
+        
         # Execute query
         with connection.cursor() as cursor:
             cursor.execute(query, ((date + hour), df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
                                    df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
                                    df['CSA/DEALER'], df['SHOP'], message_id))
             connection.commit()
-            print(f"Chasis {df['CHASIS']} inserted into database.")
+
+        return print(f"Chasis {df['CHASIS']} inserted into database."), 200
 
     except pymysql.IntegrityError:
         print(f"Message {message_id} is already processed (duplicate).")
@@ -315,7 +319,6 @@ def send_message(sender, df, date, hour, contact, message_id):
         print(type(df))
         for index, row in df.iterrows():
             try:
-                print("Row inside iterrows", row)
                 update_services(row, message_id, date, hour)  # Update service database
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
