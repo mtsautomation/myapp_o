@@ -67,6 +67,7 @@ def receive_message():
                     text = message['text']['body']  # Text message
                     image_url = ""
                     message_df = get_message(text, image_url)
+                    message_df = pd.DataFrame(message_df)
                     if message_df is None:
                         return jsonify({"error": "Failed to process message"}), 500
                     send_message(sender, message_df, date, hour,
@@ -309,9 +310,11 @@ def send_message(sender, df, date, hour, contact, message_id):
 
     try:
         print("Preparing values to send the message")
+        print(type(df))
         for index, row in df.iterrows():
             try:
-                # update_services(row, message_id)  # Update service database
+                print("Row inside iterrows", row)
+                update_services(row, message_id)  # Update service database
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
                     f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
