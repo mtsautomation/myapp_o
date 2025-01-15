@@ -124,7 +124,6 @@ def get_message(m_text, m_url):
             # Initialize a list to hold the rows
             rows = []
             # Iterate over the remaining lines to extract the data
-            print(final_header)
             for line in lines[position + 1:]:
                 # Split each line into columns
                 columns = line.split('\t')
@@ -133,6 +132,10 @@ def get_message(m_text, m_url):
                 while len(columns) < len(header):
                     columns.append('NO DATA')  # Append empty values for missing columns
                 # Insert "No data" as the value for 'RETAIL' if it was added
+                print('Columns')
+                print(columns)
+                print('Columns[0]')
+                print(columns[0])
                 col_to_compare = columns[0].replace('', 'No data')
 
                 if 'RETAIL' in final_header and len(columns) < 11 and col_to_compare in lst_stores:
