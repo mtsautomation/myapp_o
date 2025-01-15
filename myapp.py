@@ -321,6 +321,7 @@ def send_message(sender, df, date, hour, contact, message_id):
     try:
         print("Preparing values to send the message")
         df = df.fillna('No data')
+        msg_responses = []
         for index, row in df.iterrows():
             try:
                 print(row['CHASIS'])
@@ -339,14 +340,13 @@ def send_message(sender, df, date, hour, contact, message_id):
                     "* La fotografía para poder procesar tu pago."
                 )
                 response_sending = sending(final_message)
-                print("Sending function response:", response_sending)
-                return 'Sending message done'
-            except Exception as e:
-                    return f'Something with {e} happened creating the message', 500
+                msg_responses.append(response_sending)
+            return "Loop done"
+
+        print("Sending function response:", msg_responses[-1])
         return "All messages sent", 200
     except Exception as e:
-        return f'Something with {e} happened preparing the message', 500
-
+            return f'Something with {e} happened creating the message', 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
