@@ -67,7 +67,8 @@ def receive_message():
                     text = message['text']['body']  # Text message
                     image_url = ""
                     message_df = get_message(text, image_url)
-                    message_df = pd.DataFrame(message_df)
+                    print(type(message_df))
+                    print(message_df)
                     if message_df is None:
                         return jsonify({"error": "Failed to process message"}), 500
                     send_message(sender, message_df, date, hour,
@@ -149,6 +150,10 @@ def get_message(m_text, m_url):
 
             msgs = pd.DataFrame(rows, columns=final_header)
             msgs = msgs.replace({"": 'No data'})
+            print("Inside function")
+            print(type(msgs))
+            print(msgs)
+            print("End of function")
             return msgs, 200
 
     except Exception as e:
