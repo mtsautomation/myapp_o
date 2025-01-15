@@ -31,50 +31,54 @@ def receive_message():
     logs, contact_df = service_logs()
     try:
         data = request.json  # Parse incoming JSON payload
-        messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
+        messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
+        if not messages:
+            return jsonify({"error": "No messages found"}), 400
+
         sender = messages[0]['from']  # Sender number
         message_id = messages[0]['id']
 
-        if (contact_df['principalPhoneNumber'].isin([sender]).any()) & (~logs['message_id'].isin([message_id]).any()):
-            timestamp = messages[0]['timestamp']
-            message_type = messages[0]['type']  # Type of message
+        # Check sender and message ID validity
+        if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
+                (~logs['message_id'].isin([message_id]).any()):
 
+            # Process messages
             for message in messages:
-                subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]  # Filter contact info
-                # Transforming timestamp data into a friendly user readable format
-                timestamp_int = int(timestamp)  # Convert the string timestamp to an integer
-                datetime_obj = datetime.utcfromtimestamp(timestamp_int)  # Convert the timestamp to a datetime object
-                date = datetime_obj.strftime('%Y-%m-%d')  # Format the date object into a readable string
-                hour = datetime_obj.strftime('%H:%M:%S')  # Format the hour object into a readable string
+                timestamp = int(message['timestamp'])  # Convert timestamp
+                datetime_obj = datetime.utcfromtimestamp(timestamp)
+                date, hour = datetime_obj.strftime('%Y-%m-%d'), datetime_obj.strftime('%H:%M:%S')
+                message_type = message['type']  # Message type
 
-                # Handle image messages
+                # Handle message types
                 if message_type == 'image':
                     image_data = message.get('image', {})
-                    image_id = image_data.get('id')  # Media ID of the image
-                    caption = image_data.get('caption', 'No caption')  # Optional caption
+                    image_id = image_data.get('id')
+                    caption = image_data.get('caption', 'No caption')
 
-                    print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
-
-                    # Fetch the image URL using the media API
+                    # Fetch the image URL
                     image_url = get_media_url(image_id)
-                    print(f"Direct URL to image: {image_url}")
-                    # send_message(sender, caption, image_url, date, hour)
-                    return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+                    if image_url:
+                        return jsonify({"image_url": image_url, "caption": caption, "sender": sender}), 200
+                    else:
+                        return jsonify({"error": "Failed to fetch image URL"}), 500
 
                 elif message_type == 'text':
+                    text = message['text']['body']  # Text message
                     image_url = ""
-                    text = message['text']['body']  # Text message content
-                    print(text)
                     message_df = get_message(text, image_url)
-                    # Update logs, spreadsheet and service database
-                    update_services(message_df, message_id)  # Service database
-                    send_message(sender, message_df, date, hour, subset_contact)
-                    print(f"Received a message from {sender} at {hour} on {date}")
-                    return "Message:sent. ", 200
+                    if message_df is None:
+                        return jsonify({"error": "Failed to process message"}), 500
+
+                    update_services(message_df, message_id)  # Update service database
+                    send_message(sender, message_df, date, hour,
+                                 contact_df[contact_df['principalPhoneNumber'] == sender])
+                    return jsonify({"message": "Message processed successfully"}), 200
+
+        return jsonify({"message": "Message ignored (already processed or sender unknown)"}), 200
 
     except Exception as e:
         print(f"Error processing the request: {e}")
-        return "There was an error", 500
+        return jsonify({"error": f"An error occurred: {e}"}), 500
 
 
 def get_message(m_text, m_url):
