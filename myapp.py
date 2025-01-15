@@ -97,6 +97,7 @@ def get_message(m_text, m_url):
             # The first line is the header
             header = lines[position].split('\t')
             replacement_map = {
+
                 'FECHA': 'FECHA DE SOLICITUD',
                 'FECHA DE SOLICITUD ': 'FECHA DE SOLICITUD',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD',
@@ -118,12 +119,12 @@ def get_message(m_text, m_url):
             final_header = [replacement_map.get(col, col) for col in cleaned_header]
 
             if 'RETAIL' not in header:
-                final_header.insert(1, 'RETAIL')  # Insert 'RETAIL' at position 1
+                final_header.insert(0, 'RETAIL')  # Insert 'RETAIL' at position 1
 
             # Initialize a list to hold the rows
             rows = []
             # Iterate over the remaining lines to extract the data
-
+            print(final_header)
             for line in lines[position + 1:]:
                 # Split each line into columns
                 columns = line.split('\t')
@@ -134,24 +135,23 @@ def get_message(m_text, m_url):
 
                 # Insert "change" as the value for 'RETAIL' if it was added
 
-                col_to_compare = columns[0].replace(' ', '')
+                col_to_compare = columns[0].replace(' ', 'No data')
 
                 if 'RETAIL' in final_header and len(columns) > 1 and col_to_compare in lst_stores:
                     index = lst_stores.index(col_to_compare)
                     columns.insert(1, lst_stores[index])
 
                 elif 'RETAIL' in final_header and len(columns) > 1 and col_to_compare not in lst_stores:
-                    columns.insert(1, ' ')
+                    columns.insert(0, 'No data ')
 
                 # Create a dictionary for each row, using the cleaned header as keys
                 if columns[9] != "MOTOSUR":
                     columns[9] = "MOTOSUR"
                 rows.append(columns)
 
+            print(final_header, len(final_header))
+            print(rows, len(rows))
             msgs = pd.DataFrame(rows, columns=final_header)
-            print(msgs.columns)
-            
-            # msgs = msgs.replace({"": 'No data'})
             return msgs
 
     except Exception as e:
