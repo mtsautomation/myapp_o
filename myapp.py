@@ -312,7 +312,7 @@ def send_message(sender, df, date, hour, contact, message_id):
 
     try:
         print("Preparing values to send the message")
-        print(type(df))
+        df = df.fillna('No data')
         for index, row in df.iterrows():
             try:
                 print(contact['contact'].iloc[0])
