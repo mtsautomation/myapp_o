@@ -38,11 +38,11 @@ def receive_message():
 
         sender = messages[0]['from']  # Sender number
         message_id = messages[0]['id']
-
+        print(message_id,~logs['message_id'].isin([message_id]).any(),contact_df['principalPhoneNumber'].isin([sender]).any())
         # Check sender and message ID validity
         if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
                 (~logs['message_id'].isin([message_id]).any()):
-            print('recieve_messages condition True')
+            print('Recieve_messages condition True')
             # Process messages
             for message in messages:
                 timestamp = int(message['timestamp'])  # Convert timestamp
