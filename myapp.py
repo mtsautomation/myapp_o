@@ -28,65 +28,63 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    try:
-        logs, contact_df = service_logs()
-        data = request.json  # Parse incoming JSON payload
-        if 'hub.challenge' in request.args:
-            return request.args.get('hub.challenge'), 200
-            # Respond to event-type requests
-        if data:
-            return jsonify({"status": "received"}), 200
-
+    data = request.json  # Parse incoming JSON payload
+    if 'hub.challenge' in request.args:
+        return request.args.get('hub.challenge'), 200
+        # Respond to event-type requests
+    if data:
+        try:
+            logs, contact_df = service_logs()
             # Fallback response
-        messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
-        if not messages:
-            print("error: No messages found")
-            return jsonify({"error": "No messages found"}), 200
+            messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
+            if not messages:
+                print("error: No messages found")
+                return jsonify({"error": "No messages found"}), 200
 
-        sender = "+" + messages[0]['from']  # Sender number
-        message_id = messages[0]['id']
-        print(message_id, ~logs['message_id'].isin([message_id]).any(), contact_df['principalPhoneNumber'].isin([sender]).any())
-        # Check sender and message ID validity
-        if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
-                (~logs['message_id'].isin([message_id]).any()):
-            print('Receive_messages condition True')
-            # Process messages
-            for message in messages:
-                timestamp = int(message['timestamp'])  # Convert timestamp
-                datetime_obj = datetime.utcfromtimestamp(timestamp)
-                date, hour = datetime_obj.strftime('%Y-%m-%d'), datetime_obj.strftime('%H:%M:%S')
-                message_type = message['type']  # Message type
-                print(timestamp, datetime_obj, message_type)
-                # Handle message types
-                if message_type == 'image':
-                    image_data = message.get('image', {})
-                    image_id = image_data.get('id')
-                    caption = image_data.get('caption', 'No caption')
+            sender = "+" + messages[0]['from']  # Sender number
+            message_id = messages[0]['id']
+            print(message_id, ~logs['message_id'].isin([message_id]).any(), contact_df['principalPhoneNumber'].isin([sender]).any())
+            # Check sender and message ID validity
+            if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
+                    (~logs['message_id'].isin([message_id]).any()):
+                print('Receive_messages condition True')
+                # Process messages
+                for message in messages:
+                    timestamp = int(message['timestamp'])  # Convert timestamp
+                    datetime_obj = datetime.utcfromtimestamp(timestamp)
+                    date, hour = datetime_obj.strftime('%Y-%m-%d'), datetime_obj.strftime('%H:%M:%S')
+                    message_type = message['type']  # Message type
+                    print(timestamp, datetime_obj, message_type)
+                    # Handle message types
+                    if message_type == 'image':
+                        image_data = message.get('image', {})
+                        image_id = image_data.get('id')
+                        caption = image_data.get('caption', 'No caption')
 
-                    # Fetch the image URL
-                    image_url = get_media_url(image_id)
-                    if image_url:
-                        return jsonify({"image_url": image_url, "caption": caption, "sender": sender}), 200
-                    else:
-                        return jsonify({"error": "Failed to fetch image URL"}), 500
+                        # Fetch the image URL
+                        image_url = get_media_url(image_id)
+                        if image_url:
+                            return jsonify({"image_url": image_url, "caption": caption, "sender": sender}), 200
+                        else:
+                            return jsonify({"error": "Failed to fetch image URL"}), 500
 
-                elif message_type == 'text':
-                    text = message['text']['body']  # Text message
-                    image_url = ""
-                    message_df = get_message(text, image_url)
-                    print(type(message_df))
-                    print(message_df)
-                    if message_df is None:
-                        return jsonify({"error": "Failed to process message"}), 500
-                    send_message(sender, message_df, date, hour,
-                                 contact_df[contact_df['principalPhoneNumber'] == sender], message_id)
-                    return jsonify({"message": "Message processed successfully"}), 200
+                    elif message_type == 'text':
+                        text = message['text']['body']  # Text message
+                        image_url = ""
+                        message_df = get_message(text, image_url)
+                        print(type(message_df))
+                        print(message_df)
+                        if message_df is None:
+                            return jsonify({"error": "Failed to process message"}), 500
+                        send_message(sender, message_df, date, hour,
+                                     contact_df[contact_df['principalPhoneNumber'] == sender], message_id)
+                        return jsonify({"message": "Message processed successfully"}), 200
 
-        return jsonify({"message": "Message ignored (already processed or sender unknown)"}), 200
+            return jsonify({"message": "Message ignored (already processed or sender unknown)"}), 200
 
-    except Exception as e:
-        print(f"Error processing the request: {e}")
-        return jsonify({"error": f"An error occurred: {e}"}), 500
+        except Exception as e:
+            print(f"Error processing the request: {e}")
+            return jsonify({"error": f"An error occurred: {e}"}), 500
 
 
 def get_message(m_text, m_url):
