@@ -202,6 +202,8 @@ def service_logs():
 
 def update_services(df, message_id):
     print('Updating services database')
+    print(type(df))
+    print(df)
     try:
         # Connect to the database
         connection = pymysql.connect(
