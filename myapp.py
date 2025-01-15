@@ -64,16 +64,13 @@ def receive_message():
                         return jsonify({"error": "Failed to fetch image URL"}), 500
 
                 elif message_type == 'text':
-                    print('The message is text')
                     text = message['text']['body']  # Text message
                     image_url = ""
                     message_df = get_message(text, image_url)
                     if message_df is None:
                         return jsonify({"error": "Failed to process message"}), 500
-
-                    update_services(message_df, message_id)  # Update service database
                     send_message(sender, message_df, date, hour,
-                                 contact_df[contact_df['principalPhoneNumber'] == sender])
+                                 contact_df[contact_df['principalPhoneNumber'] == sender], message_id)
                     return jsonify({"message": "Message processed successfully"}), 200
 
         return jsonify({"message": "Message ignored (already processed or sender unknown)"}), 200
@@ -225,7 +222,7 @@ def update_services(df, message_id):
         with connection.cursor() as cursor:
             cursor.execute(query, (df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
                                    df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
-                                   df['CSA/DEALER'], df['SHOP'],message_id))
+                                   df['CSA/DEALER'], df['SHOP'], message_id))
             connection.commit()
             print(f"Chasis {df['CHASIS']} inserted into database.")
 
@@ -274,7 +271,7 @@ def get_media_url(media_id):
 
 
 # Distribute Messages
-def send_message(sender, text, date, hour, contact):
+def send_message(sender, df, date, hour, contact, message_id):
 
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
@@ -310,8 +307,10 @@ def send_message(sender, text, date, hour, contact):
 
     try:
         print("Preparing values to send the message")
-        for index, row in text.iterrows():
+        for index, row in df.iterrows():
             try:
+                update_services(row, message_id)  # Update service database
+
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
                     f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
