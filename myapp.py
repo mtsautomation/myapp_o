@@ -203,7 +203,7 @@ def service_logs():
             connection.close()
             print("Connection closed on service_logs.")
 
-def update_services(df, message_id):
+def update_services(df, message_id, date, hour):
     print('Updating services database')
     try:
         # Connect to the database
@@ -225,7 +225,7 @@ def update_services(df, message_id):
 
         # Execute query
         with connection.cursor() as cursor:
-            cursor.execute(query, (df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
+            cursor.execute(query, ((date + hour), df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
                                    df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
                                    df['CSA/DEALER'], df['SHOP'], message_id))
             connection.commit()
@@ -316,7 +316,7 @@ def send_message(sender, df, date, hour, contact, message_id):
         for index, row in df.iterrows():
             try:
                 print("Row inside iterrows", row)
-                update_services(row, message_id)  # Update service database
+                update_services(row, message_id, date, hour)  # Update service database
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
                     f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
