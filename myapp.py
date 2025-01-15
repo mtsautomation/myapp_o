@@ -222,10 +222,6 @@ def update_services(df, message_id, date, hour):
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
-        print((date + hour), df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
-                                   df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
-                                   df['CSA/DEALER'], df['SHOP'], message_id)
-        
         # Execute query
         with connection.cursor() as cursor:
             cursor.execute(query, ((date + hour), df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
@@ -320,9 +316,12 @@ def send_message(sender, df, date, hour, contact, message_id):
         for index, row in df.iterrows():
             try:
                 update_services(row, message_id, date, hour)  # Update service database
+                print('Time to process the message before sending')
+                print(contact['contact'].iloc[0])
+                print(row['# TIENDA'])
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
-                    f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
+                    f"Tenemos una activación para la tienda {row['# TIENDA']} de {row['RETAIL']} "
                     f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
                     f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
                     "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
@@ -331,7 +330,6 @@ def send_message(sender, df, date, hour, contact, message_id):
                     "* El Talón de activación\n"
                     "* La fotografía para poder procesar tu pago."
                 )
-
                 response_sending = sending(final_message)
                 print("Sending function response:", response_sending)
                 return 'Sending message done', 200
