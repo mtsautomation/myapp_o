@@ -309,6 +309,7 @@ def send_message(sender, df, date, hour, contact, message_id):
 
     try:
         print("Preparing values to send the message")
+        print(df)
         for index, row in df.iterrows():
             try:
                 update_services(row, message_id)  # Update service database
