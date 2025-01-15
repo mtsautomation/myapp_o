@@ -36,13 +36,13 @@ def receive_message():
         if not messages:
             return jsonify({"error": "No messages found"}), 400
 
-        sender = messages[0]['from']  # Sender number
+        sender = "+" + messages[0]['from']  # Sender number
         message_id = messages[0]['id']
-        print(message_id,~logs['message_id'].isin([message_id]).any(),contact_df['principalPhoneNumber'].isin([sender]).any())
+        print(message_id, ~logs['message_id'].isin([message_id]).any(), contact_df['principalPhoneNumber'].isin([sender]).any())
         # Check sender and message ID validity
         if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
                 (~logs['message_id'].isin([message_id]).any()):
-            print('Recieve_messages condition True')
+            print('Receive_messages condition True')
             # Process messages
             for message in messages:
                 timestamp = int(message['timestamp'])  # Convert timestamp
