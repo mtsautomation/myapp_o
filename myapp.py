@@ -30,6 +30,7 @@ def verify_webhook():
 def receive_message():
     logs, contact_df = service_logs()
     try:
+        print("First try")
         data = request.json  # Parse incoming JSON payload
         messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
         if not messages:
@@ -41,7 +42,7 @@ def receive_message():
         # Check sender and message ID validity
         if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
                 (~logs['message_id'].isin([message_id]).any()):
-
+            print('recieve_messages condition True')
             # Process messages
             for message in messages:
                 timestamp = int(message['timestamp'])  # Convert timestamp
@@ -63,6 +64,7 @@ def receive_message():
                         return jsonify({"error": "Failed to fetch image URL"}), 500
 
                 elif message_type == 'text':
+                    print('The message is text')
                     text = message['text']['body']  # Text message
                     image_url = ""
                     message_df = get_message(text, image_url)
@@ -190,7 +192,7 @@ def service_logs():
     finally:
         if 'connection' in locals() and connection.open:
             connection.close()
-            print("Connection closed.")
+            print("Connection closed on service_logs.")
 
 def update_services(df, message_id):
     print('Updating services database')
