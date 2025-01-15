@@ -31,6 +31,13 @@ def receive_message():
     try:
         logs, contact_df = service_logs()
         data = request.json  # Parse incoming JSON payload
+        if 'hub.challenge' in request.args:
+            return request.args.get('hub.challenge'), 200
+            # Respond to event-type requests
+        if data:
+            return jsonify({"status": "received"}), 200
+
+            # Fallback response
         messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
         if not messages:
             print("error: No messages found")
