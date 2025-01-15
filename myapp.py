@@ -28,13 +28,14 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    logs, contact_df = service_logs()
     try:
+        logs, contact_df = service_logs()
         print("First try")
         data = request.json  # Parse incoming JSON payload
         messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
         if not messages:
-            return jsonify({"error": "No messages found"}), 400
+            print("error: No messages found")
+            return jsonify({"error": "No messages found"}), 200
 
         sender = "+" + messages[0]['from']  # Sender number
         message_id = messages[0]['id']
