@@ -28,7 +28,56 @@ def verify_webhook():
 # Receive messages
 @app.route('/webhook', methods=['POST'])
 def receive_message():
-    def get_message(m_text, m_url):
+    logs, contact_df = service_logs()
+    try:
+        data = request.json  # Parse incoming JSON payload
+        messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
+        sender = messages[0]['from']  # Sender number
+        message_id = messages[0]['id']
+
+        if (contact_df['principalPhoneNumber'].isin([sender]).any()) & (~logs['message_id'].isin([message_id]).any()):
+            timestamp = messages[0]['timestamp']
+            message_type = messages[0]['type']  # Type of message
+
+            for message in messages:
+                subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]  # Filter contact info
+                # Transforming timestamp data into a friendly user readable format
+                timestamp_int = int(timestamp)  # Convert the string timestamp to an integer
+                datetime_obj = datetime.utcfromtimestamp(timestamp_int)  # Convert the timestamp to a datetime object
+                date = datetime_obj.strftime('%Y-%m-%d')  # Format the date object into a readable string
+                hour = datetime_obj.strftime('%H:%M:%S')  # Format the hour object into a readable string
+
+                # Handle image messages
+                if message_type == 'image':
+                    image_data = message.get('image', {})
+                    image_id = image_data.get('id')  # Media ID of the image
+                    caption = image_data.get('caption', 'No caption')  # Optional caption
+
+                    print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
+
+                    # Fetch the image URL using the media API
+                    image_url = get_media_url(image_id)
+                    print(f"Direct URL to image: {image_url}")
+                    # send_message(sender, caption, image_url, date, hour)
+                    return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
+
+                elif message_type == 'text':
+                    image_url = ""
+                    text = message['text']['body']  # Text message content
+                    message_df = get_message(text, image_url)
+                    print(type(message_df))
+                    # Update logs, spreadsheet and service database
+                    update_services(message_df, message_id)  # Service database
+                    send_message(sender, message_df, date, hour, subset_contact)
+                    print(f"Received a message from {sender} at {hour} on {date}")
+                    return "Message:sent. ", 200
+
+    except Exception as e:
+        print(f"Error processing the request: {e}")
+        return "There was an error", 500
+
+def get_message(m_text, m_url):
+    try:
         if m_url == "":
             # Split the message into lines
             lines = m_text.split('\n')
@@ -53,7 +102,7 @@ def receive_message():
                 'NOMBRE CSA / DEALER': 'CSA/DEALER',
                 'CSA DEALER': 'CSA/DEALER',
                 'CSA / DEALER': 'CSA/DEALER'
-            }
+                }
             lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
             # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
 
@@ -94,55 +143,10 @@ def receive_message():
                 rows.append(columns)
 
             msgs = pd.DataFrame(rows, columns=final_header)
-            msgs = msgs.replace({"": 'No data'}, inplace=True)
-            return msgs
-
-    logs, contact_df = service_logs()
-    try:
-        data = request.json  # Parse incoming JSON payload
-        messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages')
-        sender = messages[0]['from']  # Sender number
-        message_id = messages[0]['id']
-
-        if (contact_df['principalPhoneNumber'].isin([sender]).any()) & (~logs['message_id'].isin([message_id]).any()):
-            timestamp = messages[0]['timestamp']
-            message_type = messages[0]['type']  # Type of message
-
-            for message in messages:
-                subset_contact = contact_df[contact_df['principalPhoneNumber'] == sender]  # Filter contact info
-                # Transforming timestamp data into a friendly user readable format
-                timestamp_int = int(timestamp)  # Convert the string timestamp to an integer
-                datetime_obj = datetime.utcfromtimestamp(timestamp_int)  # Convert the timestamp to a datetime object
-                date = datetime_obj.strftime('%Y-%m-%d')  # Format the date object into a readable string
-                hour = datetime_obj.strftime('%H:%M:%S')  # Format the hour object into a readable string
-
-                # Handle image messages
-                if message_type == 'image':
-                    image_data = message.get('image', {})
-                    image_id = image_data.get('id')  # Media ID of the image
-                    caption = image_data.get('caption', 'No caption')  # Optional caption
-
-                    print(f"Received an image from {sender}. Caption: {caption} at {hour} on {date}")
-
-                    # Fetch the image URL using the media API
-                    image_url = get_media_url(image_id)
-                    print(f"Direct URL to image: {image_url}")
-                    # send_message(sender, caption, image_url, date, hour)
-                    return jsonify({"image_url": image_url, "caption": caption, "sender": sender})
-
-                elif message_type == 'text':
-                    image_url = ""
-                    text = message['text']['body']  # Text message content
-                    message_df = get_message(text, image_url)
-                    # Update logs, spreadsheet and service database
-                    update_services(message_df, message_id)  # Service database
-                    send_message(sender, message_df, date, hour, subset_contact)
-                    print(f"Received a message from {sender} at {hour} on {date}")
-                    return "Message:sent. ", 200
-
-    except Exception as e:
-        print(f"Error processing the request: {e}")
-        return "There was an error", 500
+            msgs = msgs.replace({"": 'No data'})
+            return msgs, 200
+    except pymysql.MySQLError as e:
+        print(f"Connection error: {e}")
 
 
 # Database functions
