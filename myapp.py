@@ -141,7 +141,7 @@ def get_message(m_text, m_url):
                     index = lst_stores.index(col_to_compare)
                     columns.insert(0, lst_stores[index])
 
-                elif 'RETAIL' in final_header and len(columns) > 1 and col_to_compare not in lst_stores:
+                elif 'RETAIL' in final_header and len(columns[0]) < 11 and col_to_compare not in lst_stores:
                     columns.insert(0, 'No data')
 
                 # Create a dictionary for each row, using the cleaned header as keys
