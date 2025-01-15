@@ -309,11 +309,9 @@ def send_message(sender, df, date, hour, contact, message_id):
 
     try:
         print("Preparing values to send the message")
-        print(df)
         for index, row in df.iterrows():
             try:
-                update_services(row, message_id)  # Update service database
-
+                # update_services(row, message_id)  # Update service database
                 final_message = (
                     f"Hola {contact['contact'].iloc[0]} buenos días/tardes.\n\n"
                     f"Tenemos una activación para la tienda {row['#TIENDA']} de {row['RETAIL']} "
