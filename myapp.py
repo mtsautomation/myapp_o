@@ -341,7 +341,7 @@ def send_message(sender, df, date, hour, contact, message_id):
                 )
                 response_sending = sending(final_message)
                 msg_responses.append(response_sending)
-            return "Loop done"
+            return "Loop done",200
 
         print("Sending function response:", msg_responses[-1])
         return "All messages sent", 200
