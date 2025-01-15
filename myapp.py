@@ -49,7 +49,7 @@ def receive_message():
                 datetime_obj = datetime.utcfromtimestamp(timestamp)
                 date, hour = datetime_obj.strftime('%Y-%m-%d'), datetime_obj.strftime('%H:%M:%S')
                 message_type = message['type']  # Message type
-
+                print(timestamp, datetime_obj, message_type)
                 # Handle message types
                 if message_type == 'image':
                     image_data = message.get('image', {})
