@@ -34,6 +34,7 @@ def receive_message():
         # Respond to event-type requests
     if data:
         try:
+            print(data)
             logs, contact_df = service_logs()
             # Fallback response
             messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
