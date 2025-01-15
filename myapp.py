@@ -85,18 +85,17 @@ def receive_message():
 
 def get_message(m_text, m_url):
     try:
-        if not m_url:  # Check for empty URL
-            # Split the message into lines and find the header position
+        if m_url == "":
+            # Split the message into lines
             lines = m_text.split('\n')
-            position = next(
-                (i for i, line in enumerate(lines) if 'RETAIL' in line or 'TIENDA' in line),
-                None
-            )
+            counting = -1
+            position = 0
+            for i in range(len(lines)):
+                counting = counting + 1
+                if ('RETAIL' in lines[i]) | ('TIENDA' in lines[i]):
+                    position = counting
 
-            if position is None:
-                raise ValueError("Header line not found in message")
-
-            # Extract and clean the header
+            # The first line is the header
             header = lines[position].split('\t')
             replacement_map = {
                 'RETAIL': 'STORE',
@@ -110,38 +109,48 @@ def get_message(m_text, m_url):
                 'NOMBRE CSA / DEALER': 'CSA/DEALER',
                 'CSA DEALER': 'CSA/DEALER',
                 'CSA / DEALER': 'CSA/DEALER'
-            }
+                }
             lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
+            # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
 
-            # Clean header and apply replacements
-            final_header = [
-                replacement_map.get(col.strip().replace(' ', ''), col.strip().replace(' ', ''))
-                for col in header
-            ]
-            if 'RETAIL' not in final_header:
-                final_header.insert(1, 'RETAIL')  # Add 'RETAIL' if missing
+            cleaned_header = [col.strip().replace(' ', '') for col in header]
 
-            # Process rows
+            # Step 2: Replace column names based on the mapping dictionary
+            final_header = [replacement_map.get(col, col) for col in cleaned_header]
+
+            if 'RETAIL' not in header:
+                final_header.insert(1, 'RETAIL')  # Insert 'RETAIL' at position 1
+
+            # Initialize a list to hold the rows
             rows = []
+            # Iterate over the remaining lines to extract the data
+
             for line in lines[position + 1:]:
+                # Split each line into columns
                 columns = line.split('\t')
-                # Align column length to header
-                columns += [''] * (len(final_header) - len(columns))
 
-                # Add 'RETAIL' value based on the first column
-                col_to_compare = columns[0].strip()
-                if 'RETAIL' in final_header:
-                    retail_value = col_to_compare if col_to_compare in lst_stores else ' '
-                    columns.insert(1, retail_value)
+                # Ensure the columns list aligns with the updated header length
+                while len(columns) < len(header):
+                    columns.append('')  # Append empty values for missing columns
 
-                # Ensure 'MOTOSUR' in column 9
-                if len(columns) > 9 and columns[9] != "MOTOSUR":
+                # Insert "change" as the value for 'RETAIL' if it was added
+
+                col_to_compare = columns[0].replace(' ', '')
+
+                if 'RETAIL' in final_header and len(columns) > 1 and col_to_compare in lst_stores:
+                    index = lst_stores.index(col_to_compare)
+                    columns.insert(1, lst_stores[index])
+
+                elif 'RETAIL' in final_header and len(columns) > 1 and col_to_compare not in lst_stores:
+                    columns.insert(1, ' ')
+
+                # Create a dictionary for each row, using the cleaned header as keys
+                if columns[9] != "MOTOSUR":
                     columns[9] = "MOTOSUR"
-
                 rows.append(columns)
 
-            # Create DataFrame and replace empty values
-            msgs = pd.DataFrame(rows, columns=final_header).replace("", 'No data')
+            msgs = pd.DataFrame(rows, columns=final_header)
+            msgs = msgs.replace({"": 'No data'})
             return msgs, 200
 
     except Exception as e:
