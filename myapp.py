@@ -97,7 +97,6 @@ def get_message(m_text, m_url):
             # The first line is the header
             header = lines[position].split('\t')
             replacement_map = {
-                'RETAIL': 'STORE',
                 'FECHA': 'FECHA DE SOLICITUD',
                 'FECHA DE SOLICITUD ': 'FECHA DE SOLICITUD',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD',
@@ -150,6 +149,8 @@ def get_message(m_text, m_url):
                 rows.append(columns)
 
             msgs = pd.DataFrame(rows, columns=final_header)
+            print(msgs.columns)
+            
             # msgs = msgs.replace({"": 'No data'})
             return msgs
 
