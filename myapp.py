@@ -149,12 +149,12 @@ def get_message(m_text, m_url):
                 rows.append(columns)
 
             msgs = pd.DataFrame(rows, columns=final_header)
-            msgs = msgs.replace({"": 'No data'})
+            # msgs = msgs.replace({"": 'No data'})
             print("Inside function")
             print(type(msgs))
             print(msgs)
             print("End of function")
-            return msgs, 200
+            return msgs
 
     except Exception as e:
         print(f"Error processing message: {e}")
