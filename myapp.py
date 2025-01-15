@@ -131,20 +131,21 @@ def get_message(m_text, m_url):
 
                 # Ensure the columns list aligns with the updated header length
                 while len(columns) < len(header):
-                    columns.append('')  # Append empty values for missing columns
+                    columns.append('NO DATA')  # Append empty values for missing columns
+                # Insert "No data" as the value for 'RETAIL' if it was added
+                col_to_compare = columns[0].replace('', 'No data')
 
-                # Insert "change" as the value for 'RETAIL' if it was added
-
-                col_to_compare = columns[0].replace(' ', 'No data')
-
-                if 'RETAIL' in final_header and len(columns) > 1 and col_to_compare in lst_stores:
+                if 'RETAIL' in final_header and len(columns) < 11 and col_to_compare in lst_stores:
+                    print("Adding  stores")
+                    print('RETAIL' in final_header, len(columns) < 11, col_to_compare in lst_stores)
                     index = lst_stores.index(col_to_compare)
-                    columns.insert(1, lst_stores[index])
+                    columns.insert(0, lst_stores[index])
 
                 elif 'RETAIL' in final_header and len(columns) > 1 and col_to_compare not in lst_stores:
-                    columns.insert(0, 'No data ')
+                    columns.insert(0, 'No data')
 
                 # Create a dictionary for each row, using the cleaned header as keys
+
                 if columns[9] != "MOTOSUR":
                     columns[9] = "MOTOSUR"
                 rows.append(columns)
