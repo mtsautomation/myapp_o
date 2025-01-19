@@ -93,80 +93,120 @@ def receive_message():
 def get_message(m_text, m_url):
     try:
         if m_url == "":
+            m_text = m_text.upper()
 
-            lines = [line.split('\t') for line in m_text.splitlines()]
-            print("Lines", lines)
-            if len(lines) < 10:
-                lines = m_text.split('\n')
-                print("Entro a split")
-            print("Split", lines)
-            counting = -1
-            position = 0
-            for i in range(len(lines)):
-                counting = counting + 1
-                if ('RETAIL' in lines[i]) | ('TIENDA' in lines[i]):
-                    position = counting
+            headers = ["RETAIL", "# TIENDA", "FACTURA", "FECHA", "NOMBRE DE TIENDA", "ZONA/CD",
+                       "ESTADO", "MODELO", "CHASIS", "CSA / DEALER", "SHOP"]
 
-            # The first line is the header
-            header = lines[position].split('\t')
+            # Define the replacement map
             replacement_map = {
-
+                'MOTO SUR': "MOTOSUR",
+                "MOTO SUR REFACCIONES Y SERVICIO": "MOTOSUR",
+                "MOTOSUR REFACCIONES Y SERVICIO": "MOTOSUR",
                 'FECHA': 'FECHA DE SOLICITUD',
                 'FECHA DE SOLICITUD ': 'FECHA DE SOLICITUD',
                 'FECHADESOLICITUD': 'FECHA DE SOLICITUD',
                 'NOMBREDETIENDA': 'NOMBRE DE TIENDA',
                 '#TIENDA': '# TIENDA',
+                '#': '# TIENDA',
                 'TIENDA': 'NOMBRE DE TIENDA',
                 'MUNICIPIO': 'ZONA/CD',
                 'VIN': 'CHASIS',
                 'NOMBRE CSA / DEALER': 'CSA/DEALER',
                 'CSA DEALER': 'CSA/DEALER',
                 'CSA / DEALER': 'CSA/DEALER'
-                }
-            lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
-            # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
+            }
 
-            cleaned_header = [col.strip().replace(' ', '') for col in header]
+            # List of bike models to treat as single words
+            bikes = ['PLATINA 100 ES', 'PLATINA 125', 'PULSAR NS 125', 'BOXER 150', 'DISCOVER 125 ST',
+                     'PULSAR 150', 'PULSAR 160 NS', 'PULSAR 160 TD', 'PULSAR 220', 'PULSAR 200NS FI',
+                     'PULSAR 200NS', 'PULSAR 200RS', 'AVENGER CRUISE 220', 'AVENGER STREET 220',
+                     'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
+            for key, value in replacement_map.items():
+                m_text = m_text.replace(key, value)
 
-            # Step 2: Replace column names based on the mapping dictionary
-            final_header = [replacement_map.get(col, col) for col in cleaned_header]
+            lines = [line.split('\t') for line in m_text.splitlines()]
+            print("Lines", lines)
+            if len(lines) < 10:
+                lines = m_text.split('\n')
+                print("Entro a split")
+                print("Split", lines)
+                counting = -1
+                position = 0
+                for i in range(len(lines)):
+                    counting = counting + 1
+                    if ('RETAIL' in lines[i]) | ('TIENDA' in lines[i]):
+                        position = counting
 
-            if 'RETAIL' not in header:
-                final_header.insert(0, 'RETAIL')  # Insert 'RETAIL' at position 1
+                # The first line is the header
+                header = lines[position].split('\t')
 
-            # Initialize a list to hold the rows
-            rows = []
-            # Iterate over the remaining lines to extract the data
-            for line in lines[position + 1:]:
-                # Split each line into columns
-                columns = line.split('\t')
+                lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
+                # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
 
-                # Ensure the columns list aligns with the updated header length
-                while len(columns) < len(header):
-                    columns.append('NO DATA')  # Append empty values for missing columns
-                # Insert "No data" as the value for 'RETAIL' if it was added
+                cleaned_header = [col.strip().replace(' ', '') for col in header]
 
-                col_to_compare = columns[0].replace('', 'No data')
+                # Step 2: Replace column names based on the mapping dictionary
+                final_header = [replacement_map.get(col, col) for col in cleaned_header]
 
-                if 'RETAIL' in final_header and len(columns) < 11 and col_to_compare in lst_stores:
-                    print("Adding  stores")
-                    print('RETAIL' in final_header, len(columns) < 11, col_to_compare in lst_stores)
-                    index = lst_stores.index(col_to_compare)
-                    columns.insert(0, lst_stores[index])
+                if 'RETAIL' not in header:
+                    final_header.insert(0, 'RETAIL')  # Insert 'RETAIL' at position 1
 
-                elif 'RETAIL' in final_header and len(columns) < 11 and col_to_compare not in lst_stores:
-                    columns.insert(0, 'NO data')
+                # Initialize a list to hold the rows
+                rows = []
+                # Iterate over the remaining lines to extract the data
+                for line in lines[position + 1:]:
+                    # Split each line into columns
+                    columns = line.split('\t')
 
-                # Create a dictionary for each row, using the cleaned header as keys
+                    # Ensure the columns list aligns with the updated header length
+                    while len(columns) < len(header):
+                        columns.append('NO DATA')  # Append empty values for missing columns
+                    # Insert "No data" as the value for 'RETAIL' if it was added
 
-                if columns[9] != "MOTOSUR":
-                    columns[9] = "MOTOSUR"
-                rows.append(columns)
+                    col_to_compare = columns[0].replace('', 'No data')
 
-            print(final_header, len(final_header))
-            print(rows, len(rows))
-            msgs = pd.DataFrame(rows, columns=final_header)
-            return msgs
+                    if 'RETAIL' in final_header and len(columns) < 11 and col_to_compare in lst_stores:
+                        print("Adding  stores")
+                        print('RETAIL' in final_header, len(columns) < 11, col_to_compare in lst_stores)
+                        index = lst_stores.index(col_to_compare)
+                        columns.insert(0, lst_stores[index])
+
+                    elif 'RETAIL' in final_header and len(columns) < 11 and col_to_compare not in lst_stores:
+                        columns.insert(0, 'NO data')
+
+                    # Create a dictionary for each row, using the cleaned header as keys
+
+                    if columns[9] != "MOTOSUR":
+                        columns[9] = "MOTOSUR"
+                    rows.append(columns)
+
+                print(final_header, len(final_header))
+                print(rows, len(rows))
+                msgs = pd.DataFrame(rows, columns=final_header)
+                return msgs
+            else:
+                # Find the positions of keywords indicating the start of headers
+                positions = [lines.index(word) for word in ['SHOP'] if word in lines]
+                print('POSITIONS', positions)
+
+                if not positions:
+                    raise ValueError("No header keyword ('SHOP') found in the message.")
+
+                # Determine the starting position of headers
+                header_final = min(positions)
+
+                # Extract the values that come after the headers
+                extracted_values = lines[header_final + 1:]
+                print('Extracted Values:', extracted_values)
+                # if extracted_values[7] not in mexican_states and len(extracted_values[9])
+
+                # Parse the values into chunks corresponding to the headers
+                values = extracted_values[:len(headers)]
+
+                # Create and return a DataFrame
+                msgs = pd.DataFrame([values], columns=headers)
+                return msgs
 
     except Exception as e:
         print(f"Error processing message: {e}")
