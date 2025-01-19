@@ -260,7 +260,7 @@ def get_message(m_text, m_url):
                 print('Extracted Values:', extracted_values)
 
                 # Parse the values into chunks corresponding to the headers
-                values = extracted_values[:len(headers)]
+                values = [item[0] if isinstance(item, list) and item else '' for item in extracted_values[:len(headers)]]
 
                 # Create and return a DataFrame
                 msgs = pd.DataFrame([values], columns=headers)
