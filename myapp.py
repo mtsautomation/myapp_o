@@ -93,6 +93,17 @@ def receive_message():
 def get_message(m_text, m_url):
     try:
         if m_url == "":
+            def process_text_lines(m_text):
+                lines = m_text.splitlines()  # Split into individual lines
+                lines_with_fields = []
+                for line in lines:
+                    if line.strip():  # Skip empty lines
+                        fields = line.split('\t')  # Split each line by tab
+                        # Ensure every field is treated as an individual element
+                        for field in fields:
+                            lines_with_fields.append([field])  # Add as a separate list
+                return lines_with_fields
+
             m_text = m_text.upper()
 
             headers = ["RETAIL", "# TIENDA", "FACTURA", "FECHA", "NOMBRE DE TIENDA", "ZONA/CD",
@@ -123,7 +134,7 @@ def get_message(m_text, m_url):
                      'PULSAR 200NS', 'PULSAR 200RS', 'AVENGER CRUISE 220', 'AVENGER STREET 220',
                      'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
 
-            lines = [line.split('\t') for line in m_text.splitlines()]
+            lines = process_text_lines(m_text)
             print("Lines", lines)
             if len(lines) < 10:
                 lines = m_text.split('\n')
