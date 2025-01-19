@@ -93,7 +93,7 @@ def receive_message():
 def get_message(m_text, m_url):
     try:
         if m_url == "":
-            module = m_text.plitlines()
+            module = m_text.splitlines()
             print(module)
             # Split the message into lines
             lines = m_text.split('\n')
