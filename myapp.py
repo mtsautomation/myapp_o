@@ -135,11 +135,9 @@ def get_message(m_text, m_url):
                      'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
 
             lines = process_text_lines(m_text)
-            print("Lines", lines)
+
             if len(lines) < 10:
                 lines = m_text.split('\n')
-                print("Entro a split")
-                print("Split", lines)
                 counting = -1
                 position = 0
                 for i in range(len(lines)):
@@ -317,7 +315,8 @@ def service_logs():
             print("Connection closed on service_logs.")
 
 def update_services(df, message_id, date, hour):
-    print('Updating services database')
+    for index, row in df.iterrows():
+        print(row)
     try:
         # Connect to the database
         connection = pymysql.connect(
