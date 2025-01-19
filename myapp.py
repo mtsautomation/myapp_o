@@ -152,7 +152,7 @@ def get_message(m_text, m_url):
 
                 lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
                 # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
-
+                print("Will clean the header")
                 cleaned_header = [col.strip().replace(' ', '') for col in header]
                 print("Cleaned header ", cleaned_header),'\n'
                 # Step 2: Replace column names based on the mapping dictionary
@@ -195,11 +195,15 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
-                lines = [line.replace(key, value) for line in lines for key, value in replacement_map.items()]
-                print("Lines inside the else",  lines, '\n')
+                updated_lines = []
+                for line in lines:
+                    for key, value in replacement_map.items():
+                        line = line.replace(key, value)  # Replace all occurrences of key with value
+                    updated_lines.append(line)
+                print("Lines inside the else",  updated_lines, '\n')
                 # Find the positions of keywords indicating the start of headers
 
-                positions = next((i for i, sublist in enumerate(lines) if 'SHOP' in sublist), None)
+                positions = next((i for i, sublist in enumerate(updated_lines) if 'SHOP' in sublist), None)
                 print('POSITIONS', positions, '\n')
 
                 if not positions:
