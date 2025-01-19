@@ -95,6 +95,7 @@ def get_message(m_text, m_url):
         if m_url == "":
 
             lines = m_text.splitlines()
+            lines = lines.splitlines('\t')
             print("Lines", lines)
             if len(lines) < 10:
                 lines = m_text.split('\n')
