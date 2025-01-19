@@ -94,10 +94,11 @@ def get_message(m_text, m_url):
     try:
         if m_url == "":
 
-            lines = m_text.splitlines('\t')
+            lines = [line.split('\t') for line in m_text.splitlines()]
             print("Lines", lines)
             if len(lines) < 10:
                 lines = m_text.split('\n')
+                print("Entro a split")
             print("Split", lines)
             counting = -1
             position = 0
