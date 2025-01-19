@@ -195,9 +195,12 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
+                print(type(lines))
                 updated_lines = []
                 for line in lines:
+                    print(line)
                     for key, value in replacement_map.items():
+                        print("Type", type(line))
                         line = line.replace(key, value)  # Replace all occurrences of key with value
                     updated_lines.append(line)
                 print("Lines inside the else",  updated_lines, '\n')
