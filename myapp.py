@@ -195,6 +195,7 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
+
                 def replace_values(data, replacement_map):
                     """
                     Replaces values in a list (flat or nested) based on a replacement map.
@@ -233,13 +234,10 @@ def get_message(m_text, m_url):
                 if not positions:
                     raise ValueError("No header keyword ('SHOP') found in the message.")
 
-                header_final = min(positions)
-
                 # Extract the values that come after the headers
-                print(lines[header_final + 2:])
-                extracted_values = lines[header_final + 2:]
+                print(lines[positions + 2:])
+                extracted_values = lines[positions + 2:]
                 print('Extracted Values:', extracted_values)
-                # if extracted_values[7] not in mexican_states and len(extracted_values[9])
 
                 # Parse the values into chunks corresponding to the headers
                 values = extracted_values[:len(headers)]
