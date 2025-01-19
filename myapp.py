@@ -187,17 +187,17 @@ def get_message(m_text, m_url):
                 return msgs
             else:
                 # Find the positions of keywords indicating the start of headers
-                positions = [lines.index(word) for word in ['SHOP'] if word in lines]
+
+                positions = next((i for i, sublist in enumerate(lines) if 'SHOP' in sublist), None)
                 print('POSITIONS', positions)
 
                 if not positions:
                     raise ValueError("No header keyword ('SHOP') found in the message.")
 
-                # Determine the starting position of headers
                 header_final = min(positions)
 
                 # Extract the values that come after the headers
-                extracted_values = lines[header_final + 1:]
+                extracted_values = lines[header_final + 2:]
                 print('Extracted Values:', extracted_values)
                 # if extracted_values[7] not in mexican_states and len(extracted_values[9])
 
