@@ -34,17 +34,18 @@ def receive_message():
         # Respond to event-type requests
     if data:
         try:
-            print(data)
             # Fallback response
             messages = data.get('entry', [{}])[0].get('changes', [{}])[0].get('value', {}).get('messages', [])
             if not messages:
                 print("Status: No messages found")
                 return jsonify({"error": "No messages found"}), 200
             else:
-                logs, contact_df = service_logs()
+                logs, contact_df, = service_logs()
+                # service_number = "+52999******" #Replace the number for the number that will work as server
                 sender = "+" + messages[0]['from']  # Sender number
                 message_id = messages[0]['id']
                 print(message_id, ~logs['message_id'].isin([message_id]).any(), contact_df['principalPhoneNumber'].isin([sender]).any())
+                # Replace contact_df['principalPhoneNumber'].isin([sender]).any() with service_number == sender
                 # Check sender and message ID validity
                 if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
                         (~logs['message_id'].isin([message_id]).any()):
@@ -73,6 +74,7 @@ def receive_message():
                             text = message['text']['body']  # Text message
                             image_url = ""
                             message_df = get_message(text, image_url)
+                            # Insert code to validate if the chasis already exist
                             print(type(message_df))
                             print(message_df)
                             if message_df is None:
@@ -91,6 +93,8 @@ def receive_message():
 def get_message(m_text, m_url):
     try:
         if m_url == "":
+            module = m_text.plitlines()
+            print(module)
             # Split the message into lines
             lines = m_text.split('\n')
             counting = -1
