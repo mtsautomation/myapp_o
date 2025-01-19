@@ -207,7 +207,7 @@ def get_message(m_text, m_url):
                         bool: True if the value is a valid date, False otherwise.
                     """
                     try:
-                        datetime.strptime(value, date_format)
+                        datetime.strptime(value[0], date_format)
                         return True
                     except ValueError:
                         return False
