@@ -255,7 +255,7 @@ def get_message(m_text, m_url):
                 if extracted_values[-2] == [""]:
                     del extracted_values[-2]
                 if is_date(extracted_values[2]):
-                    extracted_values.insert(["Sin datos"])
+                    extracted_values.insert(2, ["Sin datos"])
 
                 print('Extracted Values:', extracted_values)
 
