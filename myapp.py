@@ -154,10 +154,10 @@ def get_message(m_text, m_url):
                 # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
 
                 cleaned_header = [col.strip().replace(' ', '') for col in header]
-
+                print("Cleaned header ", cleaned_header),'\n'
                 # Step 2: Replace column names based on the mapping dictionary
                 final_header = [replacement_map.get(col, col) for col in cleaned_header]
-
+                print("final_header ", final_header, '\n')
                 if 'RETAIL' not in header:
                     final_header.insert(0, 'RETAIL')  # Insert 'RETAIL' at position 1
 
@@ -195,12 +195,12 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
-                for key, value in replacement_map.items():
-                    lines = lines.replace(key, value)
+                lines = [line.replace(key, value) for line in lines for key, value in replacement_map.items()]
+                print("Lines inside the else",  lines, '\n')
                 # Find the positions of keywords indicating the start of headers
 
                 positions = next((i for i, sublist in enumerate(lines) if 'SHOP' in sublist), None)
-                print('POSITIONS', positions)
+                print('POSITIONS', positions, '\n')
 
                 if not positions:
                     raise ValueError("No header keyword ('SHOP') found in the message.")
