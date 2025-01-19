@@ -235,8 +235,7 @@ def get_message(m_text, m_url):
                     raise ValueError("No header keyword ('SHOP') found in the message.")
 
                 # Extract the values that come after the headers
-                print(lines[positions + 2:])
-                extracted_values = lines[positions + 2:]
+                extracted_values = lines[positions + 1:]
                 print('Extracted Values:', extracted_values)
 
                 # Parse the values into chunks corresponding to the headers
