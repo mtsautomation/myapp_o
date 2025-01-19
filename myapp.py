@@ -122,8 +122,6 @@ def get_message(m_text, m_url):
                      'PULSAR 150', 'PULSAR 160 NS', 'PULSAR 160 TD', 'PULSAR 220', 'PULSAR 200NS FI',
                      'PULSAR 200NS', 'PULSAR 200RS', 'AVENGER CRUISE 220', 'AVENGER STREET 220',
                      'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
-            for key, value in replacement_map.items():
-                m_text = m_text.replace(key, value)
 
             lines = [line.split('\t') for line in m_text.splitlines()]
             print("Lines", lines)
@@ -186,6 +184,8 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
+                for key, value in replacement_map.items():
+                    lines = lines.replace(key, value)
                 # Find the positions of keywords indicating the start of headers
 
                 positions = next((i for i, sublist in enumerate(lines) if 'SHOP' in sublist), None)
@@ -197,6 +197,7 @@ def get_message(m_text, m_url):
                 header_final = min(positions)
 
                 # Extract the values that come after the headers
+                print(lines[header_final + 2:])
                 extracted_values = lines[header_final + 2:]
                 print('Extracted Values:', extracted_values)
                 # if extracted_values[7] not in mexican_states and len(extracted_values[9])
