@@ -106,7 +106,7 @@ def get_message(m_text, m_url):
 
             m_text = m_text.upper()
 
-            headers = ["RETAIL", "# TIENDA", "FACTURA", "FECHA", "NOMBRE DE TIENDA", "ZONA/CD",
+            headers = ["RETAIL", "# TIENDA", "FACTURA", "FECHA DE SOLICITUD", "NOMBRE DE TIENDA", "ZONA/CD",
                        "ESTADO", "MODELO", "CHASIS", "CSA / DEALER", "SHOP"]
 
             # Define the replacement map
@@ -195,6 +195,22 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
+                def is_date(value, date_format="%d/%m/%Y %H:%M"):
+                    """
+                    Checks if a string is a valid date in the given format.
+
+                    Args:
+                        value (str): The string to check.
+                        date_format (str): The expected date format.
+
+                    Returns:
+                        bool: True if the value is a valid date, False otherwise.
+                    """
+                    try:
+                        datetime.strptime(value, date_format)
+                        return True
+                    except ValueError:
+                        return False
 
                 def replace_values(data, replacement_map):
                     """
@@ -236,6 +252,11 @@ def get_message(m_text, m_url):
 
                 # Extract the values that come after the headers
                 extracted_values = lines[positions + 1:]
+                if extracted_values[-2] == [""]:
+                    del extracted_values[-2]
+                if is_date(extracted_values[2]):
+                    extracted_values.insert(["Sin datos"])
+
                 print('Extracted Values:', extracted_values)
 
                 # Parse the values into chunks corresponding to the headers
