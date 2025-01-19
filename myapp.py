@@ -93,10 +93,9 @@ def receive_message():
 def get_message(m_text, m_url):
     try:
         if m_url == "":
+            print(m_text)
             module = m_text.splitlines()
-            if len(module) != 1:
-                print(module)
-                print(len(module))
+            # if len(module) != 1:
             # Split the message into lines
             lines = m_text.split('\n')
             counting = -1
