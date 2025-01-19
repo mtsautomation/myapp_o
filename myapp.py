@@ -94,7 +94,9 @@ def get_message(m_text, m_url):
     try:
         if m_url == "":
             module = m_text.splitlines()
-            print(module)
+            if len(module) != 1:
+                print(module)
+                print(len(module))
             # Split the message into lines
             lines = m_text.split('\n')
             counting = -1
