@@ -195,18 +195,39 @@ def get_message(m_text, m_url):
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
-                print(type(lines))
+                def replace_values(data, replacement_map):
+                    """
+                    Replaces values in a list (flat or nested) based on a replacement map.
+
+                    Args:
+                        data (list): A list containing values to be replaced (can be nested).
+                        replacement_map (dict): A dictionary with keys as values to be replaced
+                                                and values as their replacements.
+
+                    Returns:
+                        list: A new list with the replaced values.
+                    """
+                    if isinstance(data, list):
+                        # If it's a list, recursively process each element
+                        return [replace_values(item, replacement_map) for item in data]
+                    else:
+                        # If it's not a list, replace it if it matches a key in the map
+                        return replacement_map.get(data, data)
+
+                updated_list = replace_values(lines, replacement_map)
+                """print(type(lines))
                 updated_lines = []
                 for line in lines:
                     print(line)
                     for key, value in replacement_map.items():
                         print("Type", type(line))
+                        print(line)
                         line = line.replace(key, value)  # Replace all occurrences of key with value
                     updated_lines.append(line)
                 print("Lines inside the else",  updated_lines, '\n')
-                # Find the positions of keywords indicating the start of headers
+                # Find the positions of keywords indicating the start of headers"""
 
-                positions = next((i for i, sublist in enumerate(updated_lines) if 'SHOP' in sublist), None)
+                positions = next((i for i, sublist in enumerate(updated_list) if 'SHOP' in sublist), None)
                 print('POSITIONS', positions, '\n')
 
                 if not positions:
