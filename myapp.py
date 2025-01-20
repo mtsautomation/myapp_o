@@ -495,9 +495,11 @@ def send_message(sender, df, date, hour, contact, message_id):
         else:
             try:
                 # Single-row processing
+                print(df.columns)
                 row = df.iloc[0]  # Access the single row
+                print(row)
                 print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
-                print(row.columns)
+
                 update_services(row, message_id, date, hour)  # Update service database
 
                 print('Processing the message before sending')
