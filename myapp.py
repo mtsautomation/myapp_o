@@ -433,7 +433,7 @@ def send_message(sender, df, date, hour, contact, message_id):
         try:
             # Send the message
             response = requests.post(url, json=payload, headers=headers)
-
+            print('Passed response')
             # Check response status
             if response.status_code == 200:
                 print(f"Message sent successfully: {response.json()}")
