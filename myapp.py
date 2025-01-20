@@ -316,11 +316,13 @@ def service_logs():
 def update_services(df, message_id, date, hour):
     try:
         # Check if the DataFrame has more than one row
+        print("Updating database")
         if len(df) > 1:
             for index, row in df.iterrows():
                 print(row)
                 insert_service(row, message_id, date, hour)  # Call helper function for insertion
         else:
+            print(df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
             print(row)
