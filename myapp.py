@@ -262,6 +262,8 @@ def get_message(m_text, m_url):
 
                 # Create and return a DataFrame
                 msgs = pd.DataFrame([values], columns=headers)
+                print(msgs)
+                print(type(msgs))
                 return msgs
 
     except Exception as e:
