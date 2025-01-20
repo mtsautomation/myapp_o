@@ -433,14 +433,49 @@ def send_message(sender, df, date, hour, contact, message_id):
     try:
         print("Preparing values to send the message")
         df = df.fillna('No data')  # Replace NaN with 'No data'
-        df = pd.DataFrame(df)
+
+        # Ensure df is a DataFrame
+        if not isinstance(df, pd.DataFrame):
+            df = pd.DataFrame([df])  # Convert Series to DataFrame
+
         print(type(df))
         print("Data Frame", "\n", df)
         msg_responses = []
 
-        for index, row in df.iterrows():
+        # Check the length of the DataFrame
+        if len(df) > 1:
+            for index, row in df.iterrows():
+                try:
+                    print(f"Processing CHASIS: {row.get('CHASIS', 'Unknown')}")
+                    update_services(row, message_id, date, hour)  # Update service database
+
+                    print('Processing the message before sending')
+                    contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
+
+                    # Construct the message
+                    final_message = (
+                        f"Hola {contact_name}, buenos días/tardes.\n\n"
+                        f"Tenemos una activación para la tienda {row['# TIENDA']} de {row['RETAIL']} "
+                        f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
+                        f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
+                        "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
+                        "NO OLVIDES:\n"
+                        "* Llenar la Hoja de verificación PDI\n"
+                        "* El Talón de activación\n"
+                        "* La fotografía para poder procesar tu pago."
+                    )
+
+                    # Send the message
+                    response_sending = sending(final_message)
+                    msg_responses.append(response_sending)
+                except Exception as inner_exception:
+                    print(f"Error while processing row {index}: {inner_exception}")
+                    msg_responses.append(f"Failed for row {index}: {inner_exception}")
+        else:
             try:
-                print(f"Processing CHASIS: {row.get('CHASIS', 'Unknown')}")
+                # Single-row processing
+                row = df.iloc[0]  # Access the single row
+                print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
                 update_services(row, message_id, date, hour)  # Update service database
 
                 print('Processing the message before sending')
@@ -463,15 +498,16 @@ def send_message(sender, df, date, hour, contact, message_id):
                 response_sending = sending(final_message)
                 msg_responses.append(response_sending)
             except Exception as inner_exception:
-                print(f"Error while processing row {index}: {inner_exception}")
-                msg_responses.append(f"Failed for row {index}: {inner_exception}")
+                print(f"Error while processing single row: {inner_exception}")
+                msg_responses.append(f"Failed for single row: {inner_exception}")
 
         # Return the last message response
         print("Sending function response:", msg_responses[-1] if msg_responses else "No responses")
         return "All messages sent", 200
+
     except Exception as e:
-        print(f"Error occurred: {e}")
-        return f'Something happened while creating the message: {e}', 500
+        print(f"Error while processing: {e}")
+        return f"An error occurred: {e}", 500
 
 
 if __name__ == '__main__':
