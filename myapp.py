@@ -106,7 +106,7 @@ def get_message(m_text, m_url):
             m_text = m_text.upper()
 
             headers = ["RETAIL", "# TIENDA", "FACTURA", "FECHA DE SOLICITUD", "NOMBRE DE TIENDA", "ZONA/CD",
-                       "ESTADO", "MODELO", "CHASIS", "CSA / DEALER", "SHOP"]
+                       "ESTADO", "MODELO", "CHASIS", "CSA/DEALER", "SHOP"]
 
             # Define the replacement map
             replacement_map = {
