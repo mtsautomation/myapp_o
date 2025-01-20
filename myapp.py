@@ -75,8 +75,7 @@ def receive_message():
                             image_url = ""
                             message_df = get_message(text, image_url)
                             # Insert code to validate if the chasis already exist
-                            print(type(message_df))
-                            print(message_df)
+
                             if message_df is None:
                                 return jsonify({"error": "Failed to process message"}), 500
                             send_message(sender, message_df, date, hour,
@@ -255,15 +254,13 @@ def get_message(m_text, m_url):
                 if is_date(extracted_values[2]):
                     extracted_values.insert(2, ["Sin datos"])
 
-                print('Extracted Values:', extracted_values)
+                # print('Extracted Values:', extracted_values)
 
                 # Parse the values into chunks corresponding to the headers
                 values = [item[0] if isinstance(item, list) and item else '' for item in extracted_values[:len(headers)]]
 
                 # Create and return a DataFrame
                 msgs = pd.DataFrame([values], columns=headers)
-                print(msgs)
-                print(type(msgs))
                 return msgs
 
     except Exception as e:
@@ -436,6 +433,7 @@ def send_message(sender, df, date, hour, contact, message_id):
     try:
         print("Preparing values to send the message")
         df = df.fillna('No data')  # Replace NaN with 'No data'
+        df = pd.DataFrame(df)
         msg_responses = []
 
         for index, row in df.iterrows():
