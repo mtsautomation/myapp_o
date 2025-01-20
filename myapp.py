@@ -434,6 +434,8 @@ def send_message(sender, df, date, hour, contact, message_id):
         print("Preparing values to send the message")
         df = df.fillna('No data')  # Replace NaN with 'No data'
         df = pd.DataFrame(df)
+        print(type(df))
+        print("Data Frame", "\n", df)
         msg_responses = []
 
         for index, row in df.iterrows():
