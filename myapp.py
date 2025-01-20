@@ -317,6 +317,7 @@ def update_services(df, message_id, date, hour):
     try:
         # Check if the DataFrame has more than one row
         print("Updating database")
+        print("lenght", len(df))
         if len(df) > 1:
             for index, row in df.iterrows():
                 print(row)
