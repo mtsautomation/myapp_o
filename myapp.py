@@ -314,20 +314,23 @@ def service_logs():
             print("Connection closed on service_logs.")
 
 def update_services(df, message_id, date, hour):
+    print("Updating database")
+    print("length", len(df))
     try:
         # Check if the DataFrame has more than one row
-        print("Updating database")
-        print("lenght", len(df))
+
         if len(df) > 1:
             for index, row in df.iterrows():
                 print(row)
                 insert_service(row, message_id, date, hour)  # Call helper function for insertion
+            return 200
         else:
             print(df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
             print(row)
             insert_service(row, message_id, date, hour)  # Call helper function for insertion
+            return 200
     except Exception as e:
         print(f"Error processing DataFrame: {e}")
 
@@ -494,6 +497,7 @@ def send_message(sender, df, date, hour, contact, message_id):
                 # Single-row processing
                 row = df.iloc[0]  # Access the single row
                 print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
+                print(row.columns)
                 update_services(row, message_id, date, hour)  # Update service database
 
                 print('Processing the message before sending')
