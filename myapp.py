@@ -187,8 +187,8 @@ def get_message(m_text, m_url):
                         columns[9] = "MOTOSUR"
                     rows.append(columns)
 
-                print(final_header, len(final_header))
-                print(rows, len(rows))
+                # print(final_header, len(final_header))
+                # print(rows, len(rows))
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
@@ -315,7 +315,8 @@ def service_logs():
 
 def update_services(df, message_id, date, hour):
     print("Updating database")
-    print("length", len(df))
+    # print("length", len(df))
+    # print(df)
     try:
         # Check if the DataFrame has more than one row
 
@@ -459,8 +460,6 @@ def send_message(sender, df, date, hour, contact, message_id):
         if not isinstance(df, pd.DataFrame):
             df = pd.DataFrame([df])  # Convert Series to DataFrame
 
-        print(type(df))
-        print("Data Frame", "\n", df)
         msg_responses = []
 
         # Check the length of the DataFrame
@@ -490,14 +489,13 @@ def send_message(sender, df, date, hour, contact, message_id):
                     response_sending = sending(final_message)
                     msg_responses.append(response_sending)
                 except Exception as inner_exception:
-                    print(f"Error while processing row {index}: {inner_exception}")
+                    print(f"Error while processing row {index}: {inner_exception} in multiple rows")
                     msg_responses.append(f"Failed for row {index}: {inner_exception}")
         else:
             try:
                 # Single-row processing
                 print(df.columns)
                 row = df.iloc[0]  # Access the single row
-                print(row)
                 print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
 
                 update_services(row, message_id, date, hour)  # Update service database
