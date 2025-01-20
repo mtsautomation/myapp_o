@@ -149,12 +149,12 @@ def get_message(m_text, m_url):
 
                 lst_stores = ['LIVERPOOL', 'SUBURBIA', 'SEARS', 'COPPEL']
                 # Step 1: Clean up headers by removing spaces (leading, trailing, and internal spaces)
-                print("Will clean the header")
+                # print("Will clean the header")
                 cleaned_header = [col.strip().replace(' ', '') for col in header]
-                print("Cleaned header ", cleaned_header),'\n'
+                # print("Cleaned header ", cleaned_header),'\n'
                 # Step 2: Replace column names based on the mapping dictionary
                 final_header = [replacement_map.get(col, col) for col in cleaned_header]
-                print("final_header ", final_header, '\n')
+                # print("final_header ", final_header, '\n')
                 if 'RETAIL' not in header:
                     final_header.insert(0, 'RETAIL')  # Insert 'RETAIL' at position 1
 
@@ -242,7 +242,7 @@ def get_message(m_text, m_url):
                 # Find the positions of keywords indicating the start of headers"""
 
                 positions = next((i for i, sublist in enumerate(updated_list) if 'SHOP' in sublist), None)
-                print('POSITIONS', positions, '\n')
+                # print('POSITIONS', positions, '\n')
 
                 if not positions:
                     raise ValueError("No header keyword ('SHOP') found in the message.")
@@ -331,8 +331,7 @@ def update_services(df, message_id, date, hour):
         elif num_rows == 1:
             print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
-            row = df.iloc[0]  # Access the single row
-            insert_service(row, message_id, date, hour)  # Call helper function for insertion
+            insert_service(df, message_id, date, hour)  # Call helper function for insertion
             print('Single row was updated')
             return 200
     except Exception as e:
@@ -466,7 +465,8 @@ def send_message(sender, df, date, hour, contact, message_id):
         msg_responses = []
 
         # Check the length of the DataFrame
-        if len(df) > 1:
+        row_num = df.shape[0]
+        if row_num > 1:
             for index, row in df.iterrows():
                 try:
                     print(f"Processing CHASIS: {row.get('CHASIS', 'Unknown')}")
@@ -498,10 +498,13 @@ def send_message(sender, df, date, hour, contact, message_id):
             try:
                 # Single-row processing
                 print(df.columns)
+
                 row = df.iloc[0]  # Access the single row
+                row_df = row.to_frame().T
+                print("Row shape", row.shape)
                 print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
 
-                update_services(row, message_id, date, hour)  # Update service database
+                update_services(row_df, message_id, date, hour)  # Update service database
 
                 print('Processing the message before sending')
                 contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
