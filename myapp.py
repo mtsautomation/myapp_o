@@ -314,8 +314,22 @@ def service_logs():
             print("Connection closed on service_logs.")
 
 def update_services(df, message_id, date, hour):
-    for index, row in df.iterrows():
-        print(row)
+    try:
+        # Check if the DataFrame has more than one row
+        if len(df) > 1:
+            for index, row in df.iterrows():
+                print(row)
+                insert_service(row, message_id, date, hour)  # Call helper function for insertion
+        else:
+            # Handle single-row DataFrame
+            row = df.iloc[0]  # Access the single row
+            print(row)
+            insert_service(row, message_id, date, hour)  # Call helper function for insertion
+    except Exception as e:
+        print(f"Error processing DataFrame: {e}")
+
+# Helper function for database insertion
+def insert_service(row, message_id, date, hour):
     try:
         # Connect to the database
         connection = pymysql.connect(
@@ -335,12 +349,15 @@ def update_services(df, message_id, date, hour):
         """
         # Execute query
         with connection.cursor() as cursor:
-            cursor.execute(query, ((date + hour), df['RETAIL'], df['# TIENDA'], df['FACTURA'], df['FECHA DE SOLICITUD'],
-                                   df['NOMBRE DE TIENDA'], df['ZONA/CD'], df['ESTADO'], df['MODELO'], df['CHASIS'],
-                                   df['CSA/DEALER'], df['SHOP'], message_id))
+            cursor.execute(query, (
+                (date + hour), row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
+                row['NOMBRE DE TIENDA'], row['ZONA/CD'], row['ESTADO'], row['MODELO'], row['CHASIS'],
+                row['CSA/DEALER'], row['SHOP'], message_id
+            ))
             connection.commit()
 
-        return print(f"Chasis {df['CHASIS']} inserted into database."), 200
+        print(f"Chasis {row['CHASIS']} inserted into database.")
+        return 200
 
     except pymysql.IntegrityError:
         print(f"Message {message_id} is already processed (duplicate).")
@@ -349,8 +366,6 @@ def update_services(df, message_id, date, hour):
     finally:
         if 'connection' in locals() and connection.open:
             connection.close()
-
-# End of database functions
 
 # Image processing
 def get_media_url(media_id):
