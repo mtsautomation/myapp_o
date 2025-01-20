@@ -134,7 +134,7 @@ def get_message(m_text, m_url):
                      'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
 
             lines = process_text_lines(m_text)
-            print("lines", lines)
+            print("lines", lines, len(lines))
             if len(lines) < 10:
                 lines = m_text.split('\n')
                 counting = -1
