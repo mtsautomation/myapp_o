@@ -135,7 +135,7 @@ def get_message(m_text, m_url):
 
             lines = process_text_lines(m_text)
             print("lines", lines, len(lines))
-            if len(lines) < 10:
+            if len(lines) < 23 | len(lines) > 40:
                 lines = m_text.split('\n')
                 counting = -1
                 position = 0
