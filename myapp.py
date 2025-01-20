@@ -331,7 +331,9 @@ def update_services(df, message_id, date, hour):
         elif num_rows == 1:
             print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
-            insert_service(df, message_id, date, hour)  # Call helper function for insertion
+            row = df.iloc[0]  # Access the single row
+            row_df = row.to_frame().T
+            insert_service(row_df, message_id, date, hour)  # Call helper function for insertion
             print('Single row was updated')
             return 200
     except Exception as e:
@@ -516,7 +518,7 @@ def send_message(sender, df, date, hour, contact, message_id):
                 # Construct the message
                 final_message = (
                     f"Hola {contact_name}, buenos días/tardes.\n\n"
-                    f"Tenemos una activación para la tienda {row['# TIENDA']} de {row['RETAIL']} "
+                    f"Tenemos una activación para la tienda {row('# TIENDA')} de {row['RETAIL']} "
                     f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
                     f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
                     "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
