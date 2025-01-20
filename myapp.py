@@ -512,13 +512,13 @@ def send_message(sender, df, date, hour, contact, message_id):
 
                 update_services(row_df, message_id, date, hour)  # Update service database
 
-                print('Processing the message before sending')
+                print('Processing the  single message before sending ')
                 contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
 
                 # Construct the message
                 final_message = (
                     f"Hola {contact_name}, buenos días/tardes.\n\n"
-                    f"Tenemos una activación para la tienda {row('# TIENDA')} de {row['RETAIL']} "
+                    f"Tenemos una activación para la tienda {row['# TIENDA']} de {row['RETAIL']} "
                     f"en {row['ZONA/CD']} de una motocicleta {row['MODELO']} con número de serie {row['CHASIS']} "
                     f"y fecha de solicitud {row['FECHA DE SOLICITUD']}.\n\n"
                     "IMPORTANTE: Tenemos 12 hrs para realizar esta activación.\n\n"
