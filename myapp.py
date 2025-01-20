@@ -321,7 +321,8 @@ def update_services(df, message_id, date, hour):
         num_rows = df.shape[0]
         print(num_rows)
         # Check if the DataFrame has more than one row
-        if num_rows > 1:
+        if num_rows > 15:
+            df = pd.DataFrame([df])
             print("Printing from update multiple rows")
             # Handle multiple-row DataFrame
             s_row = True
@@ -500,7 +501,7 @@ def send_message(sender, df, date, hour, contact, message_id):
         if row_num > 1:
             for index, row in df.iterrows():
                 try:
-                    print(f"Processing CHASIS: {row.get('CHASIS', 'Unknown')}")
+                    print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
                     update_services(row, message_id, date, hour)  # Update service database
 
                     print('Processing the message before sending')
