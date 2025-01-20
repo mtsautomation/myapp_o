@@ -388,9 +388,9 @@ def insert_service(s_row, row, message_id, date, hour):
             # Execute query
             with connection.cursor() as cursor:
                 cursor.execute(query, (
-                    (date + hour), m_row['RETAIL'], m_row['# TIENDA'], m_row['FACTURA'], m_row['FECHA DE SOLICITUD'],
-                    m_row['NOMBRE DE TIENDA'], m_row['ZONA/CD'], m_row['ESTADO'], m_row['MODELO'], m_row['CHASIS'],
-                    m_row['CSA/DEALER'], m_row['SHOP'], message_id
+                    (date + hour), row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
+                    row['NOMBRE DE TIENDA'], row['ZONA/CD'], row['ESTADO'], row['MODELO'], row['CHASIS'],
+                    row['CSA/DEALER'], row['SHOP'], message_id
                 ))
                 connection.commit()
 
