@@ -504,6 +504,10 @@ def send_message(sender, df, date, hour, contact, message_id):
                 print("Row shape", row.shape)
                 print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
 
+                # Extract values from row_df
+                row_values = row_df.iloc[0].tolist()  # Get values as a list
+                print("Row values:", row_values)
+
                 update_services(row_df, message_id, date, hour)  # Update service database
 
                 print('Processing the message before sending')
@@ -521,7 +525,6 @@ def send_message(sender, df, date, hour, contact, message_id):
                     "* El Talón de activación\n"
                     "* La fotografía para poder procesar tu pago."
                 )
-
                 # Send the message
                 response_sending = sending(final_message)
                 msg_responses.append(response_sending)
