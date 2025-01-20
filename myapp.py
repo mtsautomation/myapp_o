@@ -496,6 +496,7 @@ def send_message(sender, df, date, hour, contact, message_id):
 
         # Check the length of the DataFrame
         row_num = df.shape[0]
+        print("Number of rows :", row_num)
         if row_num > 1:
             for index, row in df.iterrows():
                 try:
