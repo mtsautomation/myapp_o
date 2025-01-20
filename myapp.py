@@ -318,19 +318,21 @@ def update_services(df, message_id, date, hour):
     # print("length", len(df))
     # print(df)
     try:
+        num_rows = df.shape[0]
         # Check if the DataFrame has more than one row
-
-        if len(df) > 1:
-            for index, row in df.iterrows():
-                print(row)
+        if num_rows > 1:
+            print("Printing from update multiple rows", df.columns)
+            # Handle multiple-row DataFrame
+            for index, row in df.iterrows():  # Iterate through the rows
                 insert_service(row, message_id, date, hour)  # Call helper function for insertion
+            print('Multiple rows were updated in database')
             return 200
-        else:
-            print(df.columns)
+        elif num_rows == 1:
+            print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
-            print(row)
             insert_service(row, message_id, date, hour)  # Call helper function for insertion
+            print('Single row was updated')
             return 200
     except Exception as e:
         print(f"Error processing DataFrame: {e}")
