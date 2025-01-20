@@ -324,8 +324,9 @@ def update_services(df, message_id, date, hour):
         if num_rows > 1:
             print("Printing from update multiple rows", df.columns)
             # Handle multiple-row DataFrame
+            s_row = True
             for index, row in df.iterrows():  # Iterate through the rows
-                insert_service(row, message_id, date, hour)  # Call helper function for insertion
+                insert_service(s_row, row, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         elif num_rows == 1:
@@ -333,14 +334,16 @@ def update_services(df, message_id, date, hour):
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
             row_df = row.to_frame().T
-            insert_service(row_df, message_id, date, hour)  # Call helper function for insertion
+            s_row = True
+            insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Single row was updated')
             return 200
     except Exception as e:
         print(f"Error processing DataFrame: {e}")
 
 # Helper function for database insertion
-def insert_service(row, message_id, date, hour):
+
+def insert_service(s_row, row, message_id, date, hour):
     try:
         # Connect to the database
         connection = pymysql.connect(
@@ -358,17 +361,42 @@ def insert_service(row, message_id, date, hour):
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
-        # Execute query
-        with connection.cursor() as cursor:
-            cursor.execute(query, (
-                (date + hour), row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
-                row['NOMBRE DE TIENDA'], row['ZONA/CD'], row['ESTADO'], row['MODELO'], row['CHASIS'],
-                row['CSA/DEALER'], row['SHOP'], message_id
-            ))
-            connection.commit()
+        if s_row:
+            # Execute query
+            with connection.cursor() as cursor:
+                cursor.execute(query, (
+                    (date + hour),
+                    row.at[0, 'RETAIL'],
+                    row.at[0, '# TIENDA'],
+                    row.at[0, 'FACTURA'],
+                    row.at[0, 'FECHA DE SOLICITUD'],
+                    row.at[0, 'NOMBRE DE TIENDA'],
+                    row.at[0, 'ZONA/CD'],
+                    row.at[0, 'ESTADO'],
+                    row.at[0, 'MODELO'],
+                    row.at[0, 'CHASIS'],
+                    row.at[0, 'CSA/DEALER'],
+                    row.at[0, 'SHOP'],
+                    message_id
+                ))
+                connection.commit()
 
-        print(f"Chasis {row['CHASIS']} inserted into database.")
-        return 200
+            print(f"Chasis {row['CHASIS']} inserted into database.")
+            return 200
+
+        else:
+            # Execute query
+            with connection.cursor() as cursor:
+                cursor.execute(query, (
+                    (date + hour), m_row['RETAIL'], m_row['# TIENDA'], m_row['FACTURA'], m_row['FECHA DE SOLICITUD'],
+                    m_row['NOMBRE DE TIENDA'], m_row['ZONA/CD'], m_row['ESTADO'], m_row['MODELO'], m_row['CHASIS'],
+                    m_row['CSA/DEALER'], m_row['SHOP'], message_id
+                ))
+                connection.commit()
+
+            print(f"Chasis {row['CHASIS']} inserted into database.")
+            return 200
+
 
     except pymysql.IntegrityError:
         print(f"Message {message_id} is already processed (duplicate).")
