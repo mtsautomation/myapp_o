@@ -344,6 +344,7 @@ def update_services(df, message_id, date, hour):
             row = df.iloc[0]  # Access the single row
             print("Shape row", row)
             print(type(row))
+            print(row.shape)
             row_df = row.to_frame().T
             s_row = True
             insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
