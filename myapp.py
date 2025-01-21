@@ -325,12 +325,13 @@ def update_services(df, message_id, date, hour):
 
             # Handle multiple-row DataFrame
             for index, row in df.iterrows():  # Iterate through the rows
+                row_df = row.to_frame().T
                 s_row = False
                 print("ROW")
                 print(row)
                 print('Index')
                 print(index)
-                insert_service(s_row, row, message_id, date, hour)  # Call helper function for insertion
+                insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         elif num_rows == 1:
@@ -405,7 +406,6 @@ def insert_service(s_row, row, message_id, date, hour):
 
             print(f"Chasis {row['CHASIS']} inserted into database.")
             return 200
-
 
     except pymysql.IntegrityError:
         print(f"Message {message_id} is already processed (duplicate).")
@@ -511,8 +511,8 @@ def send_message(sender, df, date, hour, contact, message_id):
                 try:
                     print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
                     print(type(row))
-                    row_df = row.to_frame().T
-                    update_services(row_df, message_id, date, hour)  # Update service database
+
+                    update_services(row, message_id, date, hour)  # Update service database
 
                     print('Processing the message before sending')
                     contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
