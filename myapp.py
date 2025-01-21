@@ -261,8 +261,8 @@ def get_message(m_text, m_url):
 
                 # Create and return a DataFrame
                 msgs = pd.DataFrame([values], columns=headers)
-                if msgs['"ZONA/CD"'] != 'MOTOSUR':
-                    msgs['"ZONA/CD"'] = 'MOTOSUR'
+                if msgs['ZONA/CD'] != 'MOTOSUR':
+                    msgs['ZONA/CD'] = 'MOTOSUR'
                 return msgs
 
     except Exception as e:
@@ -337,7 +337,7 @@ def update_services(df, message_id, date, hour):
                 print('Index')
                 print(index)
                 row_df = row.to_frame().T
-                insert_service(index,s_row, row_df, message_id, date, hour)  # Call helper function for insertion
+                insert_service(index, s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         if num_rows == 1:
@@ -377,7 +377,7 @@ def insert_service(index, s_row, row, message_id, date, hour):
         """
         if s_row:
             # Execute query
-            print("row in at ", row)
+            print("row in at ", index, row)
             with connection.cursor() as cursor:
 
                 cursor.execute(query, (
@@ -397,7 +397,7 @@ def insert_service(index, s_row, row, message_id, date, hour):
                 ))
                 connection.commit()
 
-            print(f"Chasis {row['CHASIS']} inserted into database.")
+            print(f"Chasis {row.at[index,'CHASIS']} inserted into database.")
             return 200
 
         else:
