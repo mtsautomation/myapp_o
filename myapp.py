@@ -315,13 +315,14 @@ def service_logs():
 
 def update_services(df, message_id, date, hour):
     print("Updating database")
-    # print("length", len(df))
-    # print(df)
+    print("DataFrame before to pass")
+    print(df)
     try:
         num_rows = df.shape[0]
         print(num_rows)
         # Check if the DataFrame has more than one row
-        if num_rows > 15:
+        if num_rows > 1:
+            print('it is less higher 15')
             df = pd.DataFrame(df)
             print("Printing from update multiple rows")
             # Handle multiple-row DataFrame
@@ -502,6 +503,7 @@ def send_message(sender, df, date, hour, contact, message_id):
             for index, row in df.iterrows():
                 try:
                     print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
+                    print(type(row))
                     update_services(row, message_id, date, hour)  # Update service database
 
                     print('Processing the message before sending')
