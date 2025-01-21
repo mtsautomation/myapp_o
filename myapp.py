@@ -229,17 +229,6 @@ def get_message(m_text, m_url):
                         return replacement_map.get(data, data)
 
                 updated_list = replace_values(lines, replacement_map)
-                """print(type(lines))
-                updated_lines = []
-                for line in lines:
-                    print(line)
-                    for key, value in replacement_map.items():
-                        print("Type", type(line))
-                        print(line)
-                        line = line.replace(key, value)  # Replace all occurrences of key with value
-                    updated_lines.append(line)
-                print("Lines inside the else",  updated_lines, '\n')
-                # Find the positions of keywords indicating the start of headers"""
 
                 positions = next((i for i, sublist in enumerate(updated_list) if 'SHOP' in sublist), None)
                 # print('POSITIONS', positions, '\n')
@@ -261,8 +250,6 @@ def get_message(m_text, m_url):
 
                 # Create and return a DataFrame
                 msgs = pd.DataFrame([values], columns=headers)
-                if msgs['ZONA/CD'] != 'MOTOSUR':
-                    msgs['ZONA/CD'] = 'MOTOSUR'
                 return msgs
 
     except Exception as e:
