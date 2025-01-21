@@ -133,6 +133,7 @@ def get_message(m_text, m_url):
                      'PULSAR 200NS', 'PULSAR 200RS', 'AVENGER CRUISE 220', 'AVENGER STREET 220',
                      'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
 
+            print("Raw text", m_text)
             lines = process_text_lines(m_text)
             print("lines", lines, len(lines))
             if len(lines) < 23 | len(lines) > 40:
