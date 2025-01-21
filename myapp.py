@@ -331,13 +331,13 @@ def update_services(df, message_id, date, hour):
             # row_df = df.to_frame().T
             # Handle multiple-row DataFrame
             for index, row in df.iterrows():  # Iterate through the rows
-                s_row = False
+                s_row = True
                 print("ROW")
                 print(row)
                 print('Index')
                 print(index)
                 row_df = row.to_frame().T
-                insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
+                insert_service(index,s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         if num_rows == 1:
@@ -349,7 +349,7 @@ def update_services(df, message_id, date, hour):
             print(row.shape)
             row_df = row.to_frame().T
             s_row = True
-            insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
+            insert_service(0,s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Single row was updated')
             return 200
     except Exception as e:
@@ -357,7 +357,7 @@ def update_services(df, message_id, date, hour):
 
 # Helper function for database insertion
 
-def insert_service(s_row, row, message_id, date, hour):
+def insert_service(index, s_row, row, message_id, date, hour):
     try:
         # Connect to the database
         connection = pymysql.connect(
