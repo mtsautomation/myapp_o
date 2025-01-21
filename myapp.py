@@ -368,6 +368,8 @@ def insert_service(s_row, row, message_id, date, hour):
         """
         if s_row:
             # Execute query
+            print("At")
+            print("row in at ", row)
             with connection.cursor() as cursor:
                 cursor.execute(query, (
                     (date + hour),
@@ -390,6 +392,8 @@ def insert_service(s_row, row, message_id, date, hour):
             return 200
 
         else:
+            print("Else")
+            print("row in else ", row )
             # Execute query
             with connection.cursor() as cursor:
                 cursor.execute(query, (
