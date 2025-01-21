@@ -511,7 +511,8 @@ def send_message(sender, df, date, hour, contact, message_id):
                 try:
                     print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
                     print(type(row))
-                    update_services(df[index], message_id, date, hour)  # Update service database
+                    row_df = row.to_frame().T
+                    update_services(row_df, message_id, date, hour)  # Update service database
 
                     print('Processing the message before sending')
                     contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
