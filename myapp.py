@@ -261,6 +261,8 @@ def get_message(m_text, m_url):
 
                 # Create and return a DataFrame
                 msgs = pd.DataFrame([values], columns=headers)
+                if msgs['"ZONA/CD"'] != 'MOTOSUR':
+                    msgs['"ZONA/CD"'] = 'MOTOSUR'
                 return msgs
 
     except Exception as e:
@@ -321,26 +323,26 @@ def update_services(df, message_id, date, hour):
     # print("Type", type(df))
 
     try:
-        """num_rows = df.shape[0]
+        num_rows = df.shape[0]
         print(num_rows)
         # Check if the DataFrame has more than one row
         if num_rows > 1:
             df = pd.DataFrame(df)
-            row_df = df.to_frame().T
+            # row_df = df.to_frame().T
             # Handle multiple-row DataFrame
             for index, row in df.iterrows():  # Iterate through the rows
-                s_row = False
+                s_row = True
                 print("ROW")
                 print(row)
                 print('Index')
                 print(index)
+                row_df = row.to_frame().T
                 insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
-            return 200"""
-        if ~df.empty:
+            return 200
+        if num_rows == 1:
             # print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
-
             row = df.iloc[0]  # Access the single row
             print("Shape row", row)
             print(type(row))
@@ -399,6 +401,7 @@ def insert_service(s_row, row, message_id, date, hour):
             return 200
 
         else:
+
             print("Else")
             print("The type of value in row is", type(row))
             print("row in else ", row)
@@ -513,6 +516,7 @@ def send_message(sender, df, date, hour, contact, message_id):
         # Check the length of the DataFrame
         row_num = df.shape[0]
         print("Number of rows :", row_num)
+        update_services(df, message_id, date, hour)  # Update service database
         if row_num > 1:
             for index, row in df.iterrows():
                 try:
@@ -520,7 +524,7 @@ def send_message(sender, df, date, hour, contact, message_id):
                     # print(type(row))
                     print("fila desde iterrows message",row)
                     print("Termino de imprimir")
-                    update_services(row, message_id, date, hour)  # Update service database
+
 
                     print('Processing the message before sending')
                     contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
