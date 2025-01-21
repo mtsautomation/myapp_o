@@ -382,17 +382,17 @@ def insert_service(index, s_row, row, message_id, date, hour):
 
                 cursor.execute(query, (
                     (date + hour),
-                    row.at[0, 'RETAIL'],
-                    row.at[0, '# TIENDA'],
-                    row.at[0, 'FACTURA'],
-                    row.at[0, 'FECHA DE SOLICITUD'],
-                    row.at[0, 'NOMBRE DE TIENDA'],
-                    row.at[0, 'ZONA/CD'],
-                    row.at[0, 'ESTADO'],
-                    row.at[0, 'MODELO'],
-                    row.at[0, 'CHASIS'],
-                    row.at[0, 'CSA/DEALER'],
-                    row.at[0, 'SHOP'],
+                    row.at[index, 'RETAIL'],
+                    row.at[index, '# TIENDA'],
+                    row.at[index, 'FACTURA'],
+                    row.at[index, 'FECHA DE SOLICITUD'],
+                    row.at[index, 'NOMBRE DE TIENDA'],
+                    row.at[index, 'ZONA/CD'],
+                    row.at[index, 'ESTADO'],
+                    row.at[index, 'MODELO'],
+                    row.at[index, 'CHASIS'],
+                    row.at[index, 'CSA/DEALER'],
+                    row.at[index, 'SHOP'],
                     message_id
                 ))
                 connection.commit()
