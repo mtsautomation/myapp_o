@@ -327,7 +327,7 @@ def update_services(df, message_id, date, hour):
             print("Printing from update multiple rows")
             # Handle multiple-row DataFrame
             print("DataFrame multiple", df, type(df))
-            s_row = True
+            s_row = False
             for index, row in df.iterrows():  # Iterate through the rows
                 print("ROW")
                 print(row)
