@@ -316,27 +316,25 @@ def service_logs():
 def update_services(df, message_id, date, hour):
     print("Updating database")
     print("DataFrame before to pass")
-    print(df)
     try:
         num_rows = df.shape[0]
         print(num_rows)
         # Check if the DataFrame has more than one row
         if num_rows > 1:
-
             df = pd.DataFrame(df)
-            print("Printing from update multiple rows")
-            # Handle multiple-row DataFrame
-            print("DataFrame multiple", df, type(df))
 
-            for row in df:  # Iterate through the rows
+            # Handle multiple-row DataFrame
+            for index, row in df.iterrows():  # Iterate through the rows
                 s_row = False
                 print("ROW")
-
+                print(row)
+                print('Index')
+                print(index)
                 insert_service(s_row, row, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         elif num_rows == 1:
-            print("Printing from update single row", df.columns)
+            # print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
             row_df = row.to_frame().T
@@ -394,7 +392,8 @@ def insert_service(s_row, row, message_id, date, hour):
 
         else:
             print("Else")
-            print("row in else ", row )
+            print("The type of value in row is", type(row))
+            print("row in else ", row)
             # Execute query
             with connection.cursor() as cursor:
                 cursor.execute(query, (
