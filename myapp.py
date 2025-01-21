@@ -326,8 +326,11 @@ def update_services(df, message_id, date, hour):
             df = pd.DataFrame(df)
             print("Printing from update multiple rows")
             # Handle multiple-row DataFrame
+            print("DataFrame multiple", df)
             s_row = True
             for index, row in df.iterrows():  # Iterate through the rows
+                print("ROW")
+                print(row)
                 insert_service(s_row, row, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
