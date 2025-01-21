@@ -316,9 +316,9 @@ def service_logs():
 def update_services(df, message_id, date, hour):
     print("Updating database")
     print("DataFrame before to pass")
-    print("DataFrame ----->", df)
-    print("Shape", df.shape)
-    print("Type", type(df))
+    # print("DataFrame ----->", df)
+    # print("Shape", df.shape)
+    # print("Type", type(df))
 
     try:
         """num_rows = df.shape[0]
@@ -340,7 +340,10 @@ def update_services(df, message_id, date, hour):
         if ~df.empty:
             # print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
+
             row = df.iloc[0]  # Access the single row
+            print("Shape row", row)
+            print(type(row))
             row_df = row.to_frame().T
             s_row = True
             insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
