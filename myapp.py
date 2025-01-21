@@ -331,7 +331,7 @@ def update_services(df, message_id, date, hour):
             # row_df = df.to_frame().T
             # Handle multiple-row DataFrame
             for index, row in df.iterrows():  # Iterate through the rows
-                s_row = True
+                s_row = False
                 print("ROW")
                 print(row)
                 print('Index')
@@ -377,9 +377,9 @@ def insert_service(s_row, row, message_id, date, hour):
         """
         if s_row:
             # Execute query
-            print("At")
             print("row in at ", row)
             with connection.cursor() as cursor:
+
                 cursor.execute(query, (
                     (date + hour),
                     row.at[0, 'RETAIL'],
@@ -402,7 +402,6 @@ def insert_service(s_row, row, message_id, date, hour):
 
         else:
 
-            print("Else")
             print("The type of value in row is", type(row))
             print("row in else ", row)
             # Execute query
