@@ -136,7 +136,8 @@ def get_message(m_text, m_url):
             print("Raw text", m_text)
             lines = process_text_lines(m_text)
             print("lines", lines, len(lines))
-            if len(lines) < 23 | len(lines) > 30:
+            print("Condition", len(lines) < 23, len(lines) > 30)
+            if (len(lines) < 23) or (len(lines) > 30):
                 lines = m_text.split('\n')
                 counting = -1
                 position = 0
