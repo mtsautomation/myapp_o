@@ -317,15 +317,14 @@ def update_services(df, message_id, date, hour):
     print("Updating database")
     print("DataFrame before to pass")
     try:
-        num_rows = df.shape[0]
+        """num_rows = df.shape[0]
         print(num_rows)
         # Check if the DataFrame has more than one row
         if num_rows > 1:
             df = pd.DataFrame(df)
-
+            row_df = df.to_frame().T
             # Handle multiple-row DataFrame
             for index, row in df.iterrows():  # Iterate through the rows
-                row_df = row.to_frame().T
                 s_row = False
                 print("ROW")
                 print(row)
@@ -333,8 +332,8 @@ def update_services(df, message_id, date, hour):
                 print(index)
                 insert_service(s_row, row_df, message_id, date, hour)  # Call helper function for insertion
             print('Multiple rows were updated in database')
-            return 200
-        elif num_rows == 1:
+            return 200"""
+        if ~df.empty:
             # print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
