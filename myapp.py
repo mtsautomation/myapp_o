@@ -322,7 +322,7 @@ def update_services(df, message_id, date, hour):
         print(num_rows)
         # Check if the DataFrame has more than one row
         if num_rows > 15:
-            df = pd.DataFrame([df])
+            df = pd.DataFrame(df)
             print("Printing from update multiple rows")
             # Handle multiple-row DataFrame
             s_row = True
