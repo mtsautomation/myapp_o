@@ -316,6 +316,10 @@ def service_logs():
 def update_services(df, message_id, date, hour):
     print("Updating database")
     print("DataFrame before to pass")
+    print("DataFrame ----->", df)
+    print("Shape", df.shape)
+    print("Type", type(df))
+
     try:
         """num_rows = df.shape[0]
         print(num_rows)
@@ -509,7 +513,7 @@ def send_message(sender, df, date, hour, contact, message_id):
             for index, row in df.iterrows():
                 try:
                     print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
-                    print(type(row))
+                    # print(type(row))
 
                     update_services(row, message_id, date, hour)  # Update service database
 
