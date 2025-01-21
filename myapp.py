@@ -124,7 +124,7 @@ def get_message(m_text, m_url):
                 'VIN': 'CHASIS',
                 'NOMBRE CSA / DEALER': 'CSA/DEALER',
                 'CSA DEALER': 'CSA/DEALER',
-                'CSA / DEALER': 'CSA/DEALER'
+                'CSA / DEALER': 'SHOP'
             }
 
             # List of bike models to treat as single words
