@@ -518,7 +518,8 @@ def send_message(sender, df, date, hour, contact, message_id):
                 try:
                     print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
                     # print(type(row))
-
+                    print("fila desde iterrows message",row)
+                    print("Termino de imprimir")
                     update_services(row, message_id, date, hour)  # Update service database
 
                     print('Processing the message before sending')
