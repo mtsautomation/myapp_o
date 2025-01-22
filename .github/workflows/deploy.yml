@@ -14,13 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Google Credentials
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
+          GOOGLE_APPLICATION_CREDENTIALS_BASE64: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
         run: |
-          echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 --decode > service_account.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_BASE64" | base64 -d -w 0 > service_account.json
+
+      - name: Set Outputs
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS_PATH=${{ github.workspace }}/service_account.json" >> "$GITHUB_OUTPUT"
 
       - name: Check Credentials File
         run: |
@@ -34,9 +38,6 @@ jobs:
       - name: Validate JSON File
         run: |
           python3 -c "import json; json.load(open('service_account.json'))"
-      
-      - name: Check Environment Variable
-        run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service_account.json"
       
       - name: Set Up Python Environment
         run: |
