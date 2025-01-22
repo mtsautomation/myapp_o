@@ -318,9 +318,10 @@ def check_and_create_folder(df, year, month):
     """
     city = df.at[0, 'ZONA/CD']
     state = df.at[0, 'ESTADO']
-
+    print("Checking folders", year, month, state, city)
     # Start by creating year and month folders
     year_folder_id = get_folder_id_by_name(year)
+
     if not year_folder_id:
         year_folder_id = create_folder(year)
     print(f"Year folder: {year} (ID: {year_folder_id})")
@@ -389,14 +390,13 @@ def service_logs():
 # UPDATE DATABASE SERVICES
 def update_services(df, message_id, date, hour, dateObj):
     print("Updating database")
-    print("DataFrame before to pass")
     # print("DataFrame ----->", df)
     # print("Shape", df.shape)
     # print("Type", type(df))
 
     try:
         num_rows = df.shape[0]
-        print(num_rows)
+        # print(num_rows)
         # Check if the DataFrame has more than one row
         if num_rows > 1:
             df = pd.DataFrame(df)
@@ -404,10 +404,10 @@ def update_services(df, message_id, date, hour, dateObj):
             # Handle multiple-row DataFrame
             for index, row in df.iterrows():  # Iterate through the rows
                 s_row = True
-                print("ROW")
-                print(row)
-                print('Index')
-                print(index)
+                # print("ROW")
+                # print(row)
+                # print('Index')
+                # print(index)
                 row_df = row.to_frame().T
                 insert_service(index, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
             print('Multiple rows were updated in database')
@@ -416,9 +416,9 @@ def update_services(df, message_id, date, hour, dateObj):
             # print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
-            print("Shape row", row)
-            print(type(row))
-            print(row.shape)
+            # print("Shape row", row)
+            # print(type(row))
+            # print(row.shape)
             row_df = row.to_frame().T
             s_row = True
             insert_service(0, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
