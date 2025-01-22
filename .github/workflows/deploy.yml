@@ -14,7 +14,7 @@ jobs:
 
       - name: Set up Google Credentials
         run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" | base64 --decode > service_account.json
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" | base64 --decode > service_account.json.base64
 
       - name: Check Credentials File
         run: |
