@@ -268,7 +268,7 @@ def get_message(m_text, m_url):
 # Lets check if it works
 # Use the GOOGLE_APPLICATION_CREDENTIALS environment variable for authentication
 # Points to /tmp/service_account.json
-credentials = service_account.Credentials.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+credentials = service_account.Credentials.from_service_account_file('/tmp/service_account.json')
 
 # Initialize the API client (example for Google Drive)
 service = build('drive', 'v3', credentials=credentials)
