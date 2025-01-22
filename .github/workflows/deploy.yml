@@ -1,0 +1,35 @@
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      # Decode the base64 secret and save it as a JSON file
+      - name: Decode the Google credentials and save to file
+        run: |
+          echo "${{ secrets.SERVICE_ACCOUNT_BASE64 }}" | base64 --decode > /tmp/service_account.json
+
+      # Set the environment variable for the credentials file path
+      - name: Set environment variable for credentials
+        run: |
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/service_account.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" >> $GITHUB_ENV
+
+      # Run the Python script with the decoded service account file
+      - name: Run Python script
+        run: |
+          myapp.py
