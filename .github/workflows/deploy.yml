@@ -5,9 +5,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read  # Required to access the repository content
+  id-token: write  # For authentication, if necessary
+  secrets: read    # Ensure secrets can be accessed
+
 jobs:
   access-drive:
     runs-on: ubuntu-latest
+    environment: production  # Use the environment associated with the secret
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -20,7 +26,6 @@ jobs:
         run: |
           if [ -f service_account.json ]; then
             echo "Credentials file exists."
-            cat service_account.json
           else
             echo "Credentials file does not exist."
             exit 1
@@ -29,10 +34,10 @@ jobs:
       - name: Validate JSON File
         run: |
           python3 -c "import json; json.load(open('service_account.json'))"
-      
+
       - name: Check Environment Variable
-        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS"
-      
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service_account.json"
+
       - name: Set Up Environment
         run: |
           python3 -m venv env
