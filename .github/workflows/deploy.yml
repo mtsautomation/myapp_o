@@ -16,17 +16,24 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" | base64 --decode > service_account.json
 
-      # Debugging: Verify the credentials file exists and its contents
       - name: Check Credentials File
         run: |
-          ls -l service_account.json
-          cat service_account.json
+          if [ -f service_account.json ]; then
+            echo "Credentials file exists."
+            cat service_account.json
+          else
+            echo "Credentials file does not exist."
+            exit 1
+          fi
 
-      # Debugging: Verify the environment variable
+      - name: Validate JSON File
+        run: |
+          python3 -c "import json; json.load(open('service_account.json'))"
+      
       - name: Check Environment Variable
-        run: echo $GOOGLE_APPLICATION_CREDENTIALS
-
-      - name: Install Python Dependencies
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS"
+      
+      - name: Set Up Environment
         run: |
           python3 -m venv env
           source env/bin/activate
