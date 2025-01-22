@@ -5,40 +5,25 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read  # Required to access the repository content
-  secrets: read   # Ensure secrets can be accessed
-
 jobs:
   access-drive:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Google Credentials
+      - name: Set Up Google Credentials
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_BASE64: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
         run: |
-          echo "$GOOGLE_APPLICATION_CREDENTIALS_BASE64" | base64 -d -w 0 > service_account.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > service_account.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/service_account.json" >> $GITHUB_ENV
 
-      - name: Set Outputs
-        run: |
-          echo "GOOGLE_APPLICATION_CREDENTIALS_PATH=${{ github.workspace }}/service_account.json" >> "$GITHUB_OUTPUT"
-
-      - name: Check Credentials File
-        run: |
-          if [ -f service_account.json ]; then
-            echo "Credentials file exists."
-          else
-            echo "Credentials file does not exist."
-            exit 1
-          fi
-
-      - name: Validate JSON File
+      - name: Validate Credentials File
         run: |
           python3 -c "import json; json.load(open('service_account.json'))"
-      
+
       - name: Set Up Python Environment
         run: |
           python3 -m venv env
@@ -46,8 +31,6 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Script
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/service_account.json
         run: |
           source env/bin/activate
           python3 myapp.py
