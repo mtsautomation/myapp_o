@@ -7,20 +7,20 @@ on:
 
 permissions:
   contents: read  # Required to access the repository content
-  id-token: write  # For authentication, if necessary
-  secrets: read    # Ensure secrets can be accessed
+  secrets: read   # Ensure secrets can be accessed
 
 jobs:
   access-drive:
     runs-on: ubuntu-latest
-    environment: production  # Use the environment associated with the secret
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Google Credentials
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}"
         run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" | base64 --decode > service_account.json
+          echo "$GOOGLE_APPLICATION_CREDENTIALS" | base64 --decode > service_account.json
 
       - name: Check Credentials File
         run: |
@@ -34,11 +34,11 @@ jobs:
       - name: Validate JSON File
         run: |
           python3 -c "import json; json.load(open('service_account.json'))"
-
+      
       - name: Check Environment Variable
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ github.workspace }}/service_account.json"
-
-      - name: Set Up Environment
+      
+      - name: Set Up Python Environment
         run: |
           python3 -m venv env
           source env/bin/activate
