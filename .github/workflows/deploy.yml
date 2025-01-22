@@ -1,31 +1,4 @@
-name: Deploy to Railway
+- name: Save Google Credentials to file
+  run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > /tmp/service_account.json
+  shell: bash
 
-on:
-  push:
-    branches:
-      - main  # Adjust this to the appropriate branch name
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Decode the service account JSON secret
-        run: echo "${{ secrets.SERVICE_ACCOUNT_BASE64 }}" | base64 --decode > /tmp/service_account.json
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run application
-        run: |
-          python myapp.py
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: /tmp/service_account.json
