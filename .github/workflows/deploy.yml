@@ -19,6 +19,7 @@ jobs:
 
       - name: Decode the service account JSON secret
         run: echo "${{ secrets.SERVICE_ACCOUNT_BASE64 }}" | base64 --decode > /tmp/service_account.json
+        shell: bash
 
       - name: Install dependencies
         run: |
