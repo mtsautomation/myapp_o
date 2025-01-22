@@ -265,7 +265,7 @@ def get_message(m_text, m_url):
 
 # -----------------------------------------GOOGLE DRIVE & SPREADSHEETS--------------------------------------------------
 # GOOGLE DRIVE
-
+# Lets check if it works
 # Use the GOOGLE_APPLICATION_CREDENTIALS environment variable for authentication
 # Points to /tmp/service_account.json
 credentials = service_account.Credentials.from_service_account_file(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
