@@ -8,24 +8,47 @@ on:
 jobs:
   access-drive:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Step 2: Debug current directory and files
+      - name: Debug Current Directory
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -la
+
+      # Step 3: Set up Google Credentials
       - name: Set up Google Credentials
         run: |
           echo ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }} | base64 --decode > service_account.json
 
+      # Step 4: Install Python Dependencies
       - name: Install Python Dependencies
         run: |
           python3 -m venv env
           source env/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt  # Make sure you have this file in your repo
-          pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib
+          pip install -r requirements.txt
 
+      # Step 5: Debug virtual environment path
+      - name: Show Virtual Environment Path
+        run: |
+          source env/bin/activate
+          which python
+
+      # Step 6: Verify Python version and installed packages
+      - name: Check Python Version and Packages
+        run: |
+          source env/bin/activate
+          python --version
+          pip list
+
+      # Step 7: Run the Python script
       - name: Run Script
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/service_account.json
         run: |
+          source env/bin/activate
           python3 myapp.py
