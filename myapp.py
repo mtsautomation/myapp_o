@@ -3,7 +3,11 @@ import requests
 from datetime import datetime
 import pandas as pd
 import pymysql
+import os
 import sys
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2 import service_account
 
 app = Flask(__name__)
 
@@ -78,7 +82,7 @@ def receive_message():
 
                             if message_df is None:
                                 return jsonify({"error": "Failed to process message"}), 500
-                            send_message(sender, message_df, date, hour,
+                            send_message(sender, message_df, date, hour, datetime_obj,
                                          contact_df[contact_df['principalPhoneNumber'] == sender], message_id)
                             return jsonify({"message": "Message processed successfully"}), 200
 
@@ -257,9 +261,87 @@ def get_message(m_text, m_url):
     except Exception as e:
         print(f"Error processing message: {e}")
         return None, 500
+# ------------------------------------------END OF CREATING MESSAGES----------------------------------------------------
 
+# -----------------------------------------GOOGLE DRIVE & SPREADSHEETS--------------------------------------------------
+# GOOGLE DRIVE
 
-# Database functions
+# Use the GOOGLE_APPLICATION_CREDENTIALS environment variable for authentication
+credentials = service_account.Credentials.from_service_account_file(
+        os.getenv("GOOGLE_APPLICATION_CREDENTIALS")  # Points to /tmp/service_account.json
+    )
+
+# Initialize the API client (example for Google Drive)
+service = build('drive', 'v3', credentials=credentials)
+
+def get_folder_id_by_name(folder_name):
+    """
+    Check if a folder exists in Google Drive by its name.
+    If found, return the folder ID; otherwise, return None.
+    """
+    query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder'"
+    results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+    files = results.get('files', [])
+    if files:
+        print(f"Folder '{folder_name}' exists with ID: {files[0]['id']}")
+        return files[0]['id']
+    print(f"Folder '{folder_name}' does not exist.")
+    return None
+
+def create_folder(folder_name):
+    """
+    Create a new folder in Google Drive.
+    """
+    folder_metadata = {
+        'name': folder_name,
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+    folder = service.files().create(body=folder_metadata, fields='id').execute()
+    print(f"Folder '{folder_name}' created with ID: {folder.get('id')}")
+    return folder.get('id')
+def create_folder_hierarchy(parent_folder_id, folder_name):
+    """
+    Create a new folder as a subfolder under the parent folder.
+    """
+    folder_metadata = {
+        'name': folder_name,
+        'mimeType': 'application/vnd.google-apps.folder',
+        'parents': [parent_folder_id]  # Specify the parent folder ID
+    }
+    folder = service.files().create(body=folder_metadata, fields='id').execute()
+    print(f"Folder '{folder_name}' created with ID: {folder.get('id')}")
+    return folder.get('id')
+
+def check_and_create_folder(df, year, month):
+    """
+    Check if folders exist and create a folder hierarchy.
+    """
+    city = df.at[0, 'ZONA/CD']
+    state = df.at[0, 'ESTADO']
+
+    # Start by creating year and month folders
+    year_folder_id = get_folder_id_by_name(year)
+    if not year_folder_id:
+        year_folder_id = create_folder(year)
+    print(f"Year folder: {year} (ID: {year_folder_id})")
+
+    month_folder_id = get_folder_id_by_name(month)
+    if not month_folder_id:
+        month_folder_id = create_folder_hierarchy(year_folder_id, month)  # Create month under year
+    print(f"Month folder: {month} (ID: {month_folder_id})")
+
+    state_folder_id = get_folder_id_by_name(state)
+    if not state_folder_id:
+        state_folder_id = create_folder_hierarchy(month_folder_id, state)  # Create state under month
+    print(f"State folder: {state} (ID: {state_folder_id})")
+
+    city_folder_id = get_folder_id_by_name(city)
+    if not city_folder_id:
+        city_folder_id = create_folder_hierarchy(state_folder_id, city)  # Create city under state
+    print(f"City folder: {city} (ID: {city_folder_id})")
+    return 200
+
+# ---------------------------------------------DATABASE FUNCTIONS-------------------------------------------------------
 def service_logs():
     try:
         # Establish connection
@@ -304,7 +386,8 @@ def service_logs():
             connection.close()
             print("Connection closed on service_logs.")
 
-def update_services(df, message_id, date, hour):
+# UPDATE DATABASE SERVICES
+def update_services(df, message_id, date, hour, dateObj):
     print("Updating database")
     print("DataFrame before to pass")
     # print("DataFrame ----->", df)
@@ -326,7 +409,7 @@ def update_services(df, message_id, date, hour):
                 print('Index')
                 print(index)
                 row_df = row.to_frame().T
-                insert_service(index, s_row, row_df, message_id, date, hour)  # Call helper function for insertion
+                insert_service(index, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         if num_rows == 1:
@@ -338,7 +421,10 @@ def update_services(df, message_id, date, hour):
             print(row.shape)
             row_df = row.to_frame().T
             s_row = True
-            insert_service(0,s_row, row_df, message_id, date, hour)  # Call helper function for insertion
+            insert_service(0, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
+            year = dateObj.year()
+            month = dateObj.month()
+            check_and_create_folder(row_df, year, month)  # Call the folders function
             print('Single row was updated')
             return 200
     except Exception as e:
@@ -346,7 +432,7 @@ def update_services(df, message_id, date, hour):
 
 # Helper function for database insertion
 
-def insert_service(index, s_row, row, message_id, date, hour):
+def insert_service(index, s_row, row, message_id, date, hour, dateObj):
     try:
         # Connect to the database
         connection = pymysql.connect(
@@ -370,7 +456,7 @@ def insert_service(index, s_row, row, message_id, date, hour):
             with connection.cursor() as cursor:
 
                 cursor.execute(query, (
-                    (date + hour),
+                    dateObj,
                     row.at[index, 'RETAIL'],
                     row.at[index, '# TIENDA'],
                     row.at[index, 'FACTURA'],
@@ -396,7 +482,7 @@ def insert_service(index, s_row, row, message_id, date, hour):
             # Execute query
             with connection.cursor() as cursor:
                 cursor.execute(query, (
-                    (date + hour), row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
+                    dateObj, row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
                     row['NOMBRE DE TIENDA'], row['ZONA/CD'], row['ESTADO'], row['MODELO'], row['CHASIS'],
                     row['CSA/DEALER'], row['SHOP'], message_id
                 ))
@@ -412,8 +498,9 @@ def insert_service(index, s_row, row, message_id, date, hour):
     finally:
         if 'connection' in locals() and connection.open:
             connection.close()
+# -----------------------------------------END OF DATABASE FUNCTIONS----------------------------------------------------
 
-# Image processing
+#
 def get_media_url(media_id):
     try:
         # Step 1: Get the media URL from WhatsApp
@@ -446,12 +533,8 @@ def get_media_url(media_id):
         print(f"An error occurred: {e}")
         return None
 
-
-# Distribute Messages
-import requests  # Ensure this is imported at the top
-
-
-def send_message(sender, df, date, hour, contact, message_id):
+# ----------------------------------------------WHATSAPP MESSAGES-------------------------------------------------------
+def send_message(sender, df, date, hour, dateObj, contact, message_id):
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
@@ -503,18 +586,16 @@ def send_message(sender, df, date, hour, contact, message_id):
 
         # Check the length of the DataFrame
         row_num = df.shape[0]
-        print("Number of rows :", row_num)
-        update_services(df, message_id, date, hour)  # Update service database
+        # print("Number of rows :", row_num)
+        # update_services(df, message_id, date, hour)  # Update service database
+        # Create a folder to storage images and spreadsheets
+
         if row_num > 1:
             for index, row in df.iterrows():
                 try:
-                    print(f"Processing from iterrows CHASIS: {row.get('CHASIS', 'Unknown')}")
+                    print(f"Processing from more then one CHASIS: {row.get('CHASIS', 'Unknown')}")
                     # print(type(row))
-                    print("fila desde iterrows message",row)
-                    print("Termino de imprimir")
-
-
-                    print('Processing the message before sending')
+                    # print("fila desde iterrows message", row)
                     contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
 
                     # Construct the message
@@ -539,20 +620,18 @@ def send_message(sender, df, date, hour, contact, message_id):
         else:
             try:
                 # Single-row processing
-                print(df.columns)
-
                 row = df.iloc[0]  # Access the single row
                 row_df = row.to_frame().T
-                print("Row shape", row.shape)
-                print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
+                # print("Row shape", row.shape)
+                # print(f"Processing single CHASIS: {row.get('CHASIS', 'Unknown')}")
 
                 # Extract values from row_df
-                row_values = row_df.iloc[0].tolist()  # Get values as a list
-                print("Row values:", row_values)
+                # row_values = row_df.iloc[0].tolist()  # Get values as a list
+                # print("Row values:", row_values)
 
-                update_services(row_df, message_id, date, hour)  # Update service database
+                update_services(row_df, message_id, date, hour, dateObj)  # Update service database
 
-                print('Processing the  single message before sending ')
+                # print('Processing the  single message before sending ')
                 contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
 
                 # Construct the message
