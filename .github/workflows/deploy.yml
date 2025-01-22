@@ -1,0 +1,4 @@
+- name: Save Google Credentials to file
+  run: echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}" > /tmp/service_account.json
+  shell: bash
+
