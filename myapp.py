@@ -56,14 +56,14 @@ def receive_message():
                 # Check sender and message ID validity
                 if (contact_df['principalPhoneNumber'].isin([sender]).any()) and \
                         (~logs['message_id'].isin([message_id]).any()):
-                    print('Receive_messages condition True')
+                    # print('Receive_messages condition True')
                     # Process messages
                     for message in messages:
                         timestamp = int(message['timestamp'])  # Convert timestamp
                         datetime_obj = datetime.utcfromtimestamp(timestamp)
                         date, hour = datetime_obj.strftime('%Y-%m-%d'), datetime_obj.strftime('%H:%M:%S')
                         message_type = message['type']  # Message type
-                        print(timestamp, datetime_obj, message_type)
+                        # print(timestamp, datetime_obj, message_type)
                         # Handle message types
                         if message_type == 'image':
                             image_data = message.get('image', {})
@@ -140,10 +140,10 @@ def get_message(m_text, m_url):
                      'PULSAR 200NS', 'PULSAR 200RS', 'AVENGER CRUISE 220', 'AVENGER STREET 220',
                      'DOMINAR 250', 'DOMINAR 400', 'DOMINAR 400 UG', 'N250', 'N160', 'PULSAR NS 125 UG']
 
-            print("Raw text", m_text)
+            # print("Raw text", m_text)
             lines = process_text_lines(m_text)
-            print("lines", lines, len(lines))
-            print("Condition", len(lines) < 23, len(lines) > 30)
+            # print("lines", lines, len(lines))
+            # print("Condition", len(lines) < 23, len(lines) > 30)
             if (len(lines) < 23) or (len(lines) > 30):
                 lines = m_text.split('\n')
                 counting = -1
@@ -182,8 +182,6 @@ def get_message(m_text, m_url):
                     col_to_compare = columns[0].replace('', 'No data')
 
                     if 'RETAIL' in final_header and len(columns) < 11 and col_to_compare in lst_stores:
-                        print("Adding  stores")
-                        print('RETAIL' in final_header, len(columns) < 11, col_to_compare in lst_stores)
                         index = lst_stores.index(col_to_compare)
                         columns.insert(0, lst_stores[index])
 
@@ -196,8 +194,6 @@ def get_message(m_text, m_url):
                         columns[9] = "MOTOSUR"
                     rows.append(columns)
 
-                # print(final_header, len(final_header))
-                # print(rows, len(rows))
                 msgs = pd.DataFrame(rows, columns=final_header)
                 return msgs
             else:
@@ -413,6 +409,7 @@ def update_services(df, message_id, date, hour, dateObj):
         # print(num_rows)
         # Check if the DataFrame has more than one row
         if num_rows > 1:
+            print("More than one row")
             df = pd.DataFrame(df)
             # row_df = df.to_frame().T
             # Handle multiple-row DataFrame
@@ -427,7 +424,7 @@ def update_services(df, message_id, date, hour, dateObj):
             print('Multiple rows were updated in database')
             return 200
         if num_rows == 1:
-            # print("Printing from update single row", df.columns)
+            print("Printing from update single row", df.columns)
             # Handle single-row DataFrame
             row = df.iloc[0]  # Access the single row
             # print("Shape row", row)
@@ -466,7 +463,7 @@ def insert_service(index, s_row, row, message_id, date, hour, dateObj):
         """
         if s_row:
             # Execute query
-            print("row in at ", index, row)
+            # print("row in at ", index, row)
             with connection.cursor() as cursor:
 
                 cursor.execute(query, (
