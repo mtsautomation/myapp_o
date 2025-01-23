@@ -16,7 +16,7 @@ jobs:
       # Decode and save the JSON secret as a file
       - name: Set up Google Credentials
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_SECRET }}
         run: |
           if [ -z "$GOOGLE_APPLICATION_CREDENTIALS_JSON" ]; then
             echo "GOOGLE_APPLICATION_CREDENTIALS_JSON is not set or empty"
