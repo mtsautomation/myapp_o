@@ -398,7 +398,7 @@ def service_logs():
             print("Connection closed on service_logs.")
 
 # UPDATE DATABASE SERVICES
-def update_services(df, message_id, date, hour, dateObj):
+def update_services(df, message_id, date, hour, date_obj):
     print("Updating database")
     # print("DataFrame ----->", df)
     # print("Shape", df.shape)
@@ -420,7 +420,7 @@ def update_services(df, message_id, date, hour, dateObj):
                 # print('Index')
                 # print(index)
                 row_df = row.to_frame().T
-                insert_service(index, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
+                insert_service(index, s_row, row_df, message_id, date, hour, date_obj)  # Call helper function for insertion
             print('Multiple rows were updated in database')
             return 200
         if num_rows == 1:
@@ -432,9 +432,10 @@ def update_services(df, message_id, date, hour, dateObj):
             # print(row.shape)
             row_df = row.to_frame().T
             s_row = True
-            insert_service(0, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
-            year = dateObj.year()
-            month = dateObj.month()
+            print(date_obj)
+            insert_service(0, s_row, row_df, message_id, date, hour, date_obj)  # Call helper function for insertion
+            year = date_obj.year()
+            month = date_obj.month()
             print("Row_df", row_df)
             print(year)
             print(month)
@@ -446,7 +447,7 @@ def update_services(df, message_id, date, hour, dateObj):
 
 # Helper function for database insertion
 
-def insert_service(index, s_row, row, message_id, date, hour, dateObj):
+def insert_service(index, s_row, row, message_id, date, hour, date_obj):
     try:
         # Connect to the database
         connection = pymysql.connect(
@@ -470,7 +471,7 @@ def insert_service(index, s_row, row, message_id, date, hour, dateObj):
             with connection.cursor() as cursor:
 
                 cursor.execute(query, (
-                    dateObj,
+                    date_obj,
                     row.at[index, 'RETAIL'],
                     row.at[index, '# TIENDA'],
                     row.at[index, 'FACTURA'],
@@ -496,7 +497,7 @@ def insert_service(index, s_row, row, message_id, date, hour, dateObj):
             # Execute query
             with connection.cursor() as cursor:
                 cursor.execute(query, (
-                    dateObj, row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
+                    date_obj, row['RETAIL'], row['# TIENDA'], row['FACTURA'], row['FECHA DE SOLICITUD'],
                     row['NOMBRE DE TIENDA'], row['ZONA/CD'], row['ESTADO'], row['MODELO'], row['CHASIS'],
                     row['CSA/DEALER'], row['SHOP'], message_id
                 ))
@@ -548,7 +549,8 @@ def get_media_url(media_id):
         return None
 
 # ----------------------------------------------WHATSAPP MESSAGES-------------------------------------------------------
-def send_message(sender, df, date, hour, dateObj, contact, message_id):
+def send_message(sender, df, date, hour, date_obj, contact, message_id):
+    sen_obj = sender
     # Get data from the request
     recipient_number = '+529995565617'  # Recipient's phone number (in E.164 format)
 
@@ -643,7 +645,7 @@ def send_message(sender, df, date, hour, dateObj, contact, message_id):
                 # row_values = row_df.iloc[0].tolist()  # Get values as a list
                 # print("Row values:", row_values)
 
-                update_services(row_df, message_id, date, hour, dateObj)  # Update service database
+                update_services(row_df, message_id, date, hour, date_obj)  # Update service database
 
                 # print('Processing the  single message before sending ')
                 contact_name = contact['contact'].iloc[0] if not contact['contact'].empty else 'Usuario'
