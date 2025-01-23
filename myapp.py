@@ -277,19 +277,9 @@ def get_message(m_text, m_url):
 credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 print(f"Type of credentials_json: {type(credentials_json)}")
 
-# If it's a string, load it into a dictionary
-if isinstance(credentials_json, str):
-    if not credentials_json:
-        raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
-
-    # Parse the JSON if it's a string
-    credentials = json.loads(credentials_json)
-else:
-    # It's already a dictionary, so use it directly
-    credentials = credentials_json
-
 credentials = service_account.Credentials.from_service_account_file(
-    os.getenv(credentials))
+    os.getenv(credentials_json))
+
 
 # Initialize the API client (example for Google Drive)
 service = build('drive', 'v3', credentials=credentials)
