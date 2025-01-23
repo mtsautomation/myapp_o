@@ -273,13 +273,17 @@ def get_message(m_text, m_url):
 # GOOGLE DRIVE CREDENTIALS
 # Get the JSON Google credentials from the environment variable
 
-
 credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-print(f"Type of credentials_json: {type(credentials_json)}")
+if not credentials_json:
+    raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
 
-credentials = service_account.Credentials.from_service_account_file(
-    os.getenv(credentials_json))
+# Write the JSON string to a temporary file
+with open("service_account.json", "w") as f:
+    f.write(credentials_json)
 
+# Load credentials from the file
+credentials = service_account.Credentials.from_service_account_file("service_account.json")
+print("Credentials loaded successfully.")
 
 # Initialize the API client (example for Google Drive)
 service = build('drive', 'v3', credentials=credentials)
