@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+﻿from flask import Flask, request, jsonify
 import requests
 from datetime import datetime
 import pandas as pd
@@ -12,13 +12,6 @@ from google.oauth2 import service_account
 
 app = Flask(__name__)
 
-# Get the JSON Google credentials from the environment variable
-credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-if not credentials_json:
-    raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
-
-# Parse the JSON
-credentials = json.loads(credentials_json)
 
 # WhatsApp API credentials (replace with your actual token)
 ACCESS_TOKEN = "EAANEdLMCZCT0BOw2pHfxwr9eOvzeSWlDq928hDOR8ZBpjM6kbp5a46tHvOFRZBJh6e5nFuf9eQwnpiFDKNkeRGZCGiWPIVdSS8YF4yXZCFKsHLeCeXqripQZAbkeLkZCAcYhU7S0VxBkoI3ZChqSGvEUR7EB5KEeb4GMlH04mHzBY5uA0UAUC9MNKckq9MECgbh6sAZDZD"
@@ -278,6 +271,23 @@ def get_message(m_text, m_url):
 
 # Use the GOOGLE_APPLICATION_CREDENTIALS environment variable for authentication
 # GOOGLE DRIVE CREDENTIALS
+# Get the JSON Google credentials from the environment variable
+
+
+credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+print(f"Type of credentials_json: {type(credentials_json)}")
+
+# If it's a string, load it into a dictionary
+if isinstance(credentials_json, str):
+    if not credentials_json:
+        raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
+
+    # Parse the JSON if it's a string
+    credentials = json.loads(credentials_json)
+else:
+    # It's already a dictionary, so use it directly
+    credentials = credentials_json
+
 credentials = service_account.Credentials.from_service_account_file(
     os.getenv(credentials))
 
