@@ -435,6 +435,9 @@ def update_services(df, message_id, date, hour, dateObj):
             insert_service(0, s_row, row_df, message_id, date, hour, dateObj)  # Call helper function for insertion
             year = dateObj.year()
             month = dateObj.month()
+            print("Row_df", row_df)
+            print(year)
+            print(month)
             check_and_create_folder(row_df, year, month)  # Call the folders function
             print('Single row was updated')
             return 200
