@@ -435,10 +435,8 @@ def update_services(df, message_id, date, hour, date_obj):
             print(date_obj)
             print(type(date_obj))
             insert_service(0, s_row, row_df, message_id, date, hour, date_obj)  # Call helper function for insertion
-            dt = datetime(date_obj)
-            # Access year and month
-            year = dt.year
-            month = dt.month
+            year = date_obj.year
+            month = date_obj.month
             print("Row_df", row_df)
             print(year)
             print(month)
