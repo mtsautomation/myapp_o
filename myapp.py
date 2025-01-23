@@ -4,12 +4,21 @@ from datetime import datetime
 import pandas as pd
 import pymysql
 import os
+import json
 import sys
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
 app = Flask(__name__)
+
+# Get the JSON Google credentials from the environment variable
+credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if not credentials_json:
+    raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
+
+# Parse the JSON
+credentials = json.loads(credentials_json)
 
 # WhatsApp API credentials (replace with your actual token)
 ACCESS_TOKEN = "EAANEdLMCZCT0BOw2pHfxwr9eOvzeSWlDq928hDOR8ZBpjM6kbp5a46tHvOFRZBJh6e5nFuf9eQwnpiFDKNkeRGZCGiWPIVdSS8YF4yXZCFKsHLeCeXqripQZAbkeLkZCAcYhU7S0VxBkoI3ZChqSGvEUR7EB5KEeb4GMlH04mHzBY5uA0UAUC9MNKckq9MECgbh6sAZDZD"
@@ -31,6 +40,7 @@ def verify_webhook():
 
 # Receive messages
 @app.route('/webhook', methods=['POST'])
+
 def receive_message():
     data = request.json  # Parse incoming JSON payload
     if 'hub.challenge' in request.args:
@@ -269,7 +279,7 @@ def get_message(m_text, m_url):
 # Use the GOOGLE_APPLICATION_CREDENTIALS environment variable for authentication
 # GOOGLE DRIVE CREDENTIALS
 credentials = service_account.Credentials.from_service_account_file(
-    os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    os.getenv(credentials))
 
 # Initialize the API client (example for Google Drive)
 service = build('drive', 'v3', credentials=credentials)
