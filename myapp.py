@@ -269,6 +269,12 @@ def get_message(m_text, m_url):
 # GOOGLE DRIVE CREDENTIALS
 # Get the JSON Google credentials from the environment variable
 
+import os
+import json
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+# Load the service account JSON from the environment variable
 credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 if not credentials_json:
     raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
@@ -281,8 +287,14 @@ with open("service_account.json", "w") as f:
 credentials = service_account.Credentials.from_service_account_file("service_account.json")
 print("Credentials loaded successfully.")
 
-# Initialize the API client (example for Google Drive)
+# Initialize the API client (Google Drive example)
 service = build('drive', 'v3', credentials=credentials)
+
+# Get information about the authenticated account
+about = service.about().get(fields="user").execute()
+user_email = about['user']['emailAddress']
+
+print(f"Currently authenticated as: {user_email}")
 
 def get_folder_id_by_name(folder_name):
     """
