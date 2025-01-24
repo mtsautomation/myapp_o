@@ -288,6 +288,7 @@ def get_drive_service():
     print("Get_drive")
     """Return an authenticated Google Drive service instance."""
     if 'credentials' not in session:
+        print("Cerdentials not in session")
         raise ValueError("No credentials found in session. User must authorize access.")
     print(session['credentials'])
     credentials_data = json.loads(session['credentials'])
@@ -300,7 +301,9 @@ def get_drive_service():
 @app.route('/')
 def home():
     """Home route."""
+
     if 'credentials' not in session:
+        print("T/F value", ('credentials' not in session))
         return redirect(url_for('authorize'))
 
     service = get_drive_service()
@@ -316,12 +319,13 @@ def home():
 @app.route('/authorize')
 def authorize():
     """Step 1: Redirect to Google's OAuth2 server."""
+    print("Entered into athorize")
     authorization_url, state = flow.authorization_url(
         access_type='offline',
         include_granted_scopes='true'
     )
     session['state'] = state
-    print("Authorize pass")
+    print("Authorize passed")
     return redirect(authorization_url)
 
 
