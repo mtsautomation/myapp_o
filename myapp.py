@@ -290,6 +290,7 @@ def get_drive_service():
     if 'credentials' not in session:
         raise ValueError("No credentials found in session. User must authorize access.")
     credentials_data = json.loads(session['credentials'])
+    print(credentials_data)
     credentials = Credentials.from_authorized_user_info(credentials_data, SCOPES)
     print("Credentiales returned")
     return build('drive', 'v3', credentials=credentials)
@@ -319,12 +320,14 @@ def authorize():
         include_granted_scopes='true'
     )
     session['state'] = state
+    print("Authorize pass")
     return redirect(authorization_url)
 
 
 @app.route('/oauth2callback')
 def oauth2callback():
     """Step 2: Handle the callback from Google's OAuth2 server."""
+    print("oauth2callback pass")
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
     session['credentials'] = credentials.to_json()
