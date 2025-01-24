@@ -1,4 +1,4 @@
-﻿from flask import Flask, request, jsonify
+﻿from flask import Flask, request, jsonify, redirect, url_for, session
 import requests
 from datetime import datetime
 import pandas as pd
@@ -9,6 +9,9 @@ import sys
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
+from google_auth_oauthlib.flow import Flow
+from google.oauth2.credentials import Credentials
+
 
 app = Flask(__name__)
 
@@ -33,7 +36,6 @@ def verify_webhook():
 
 # Receive messages
 @app.route('/webhook', methods=['POST'])
-
 def receive_message():
     data = request.json  # Parse incoming JSON payload
     if 'hub.challenge' in request.args:
@@ -268,101 +270,117 @@ def get_message(m_text, m_url):
 # Use the GOOGLE_APPLICATION_CREDENTIALS environment variable for authentication
 # GOOGLE DRIVE CREDENTIALS
 # Get the JSON Google credentials from the environment variable
+#app = Flask(__name__)
+# app.secret_key = os.getenv("FLASK_SECRET_KEY", "default-secret-key")  # Replace with a secure key for production
 
-import os
-import json
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
+SCOPES = ['https://www.googleapis.com/auth/drive']
+REDIRECT_URI = 'https://ravishing-presence-production.up.railway.app/oauth2callback'
 
-# Load the service account JSON from the environment variable
-credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-if not credentials_json:
-    raise ValueError("Missing GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable")
+# Load client secrets from environment variable
+CLIENT_SECRETS = json.loads(os.getenv("GOOGLE_CLIENT_SECRET"))
 
-# Write the JSON string to a temporary file
-with open("service_account.json", "w") as f:
-    f.write(credentials_json)
+# OAuth2 flow setup
+flow = Flow.from_client_config(CLIENT_SECRETS, scopes=SCOPES)
+flow.redirect_uri = REDIRECT_URI
 
-# Load credentials from the file
-credentials = service_account.Credentials.from_service_account_file("service_account.json")
-print("Credentials loaded successfully.")
 
-# Initialize the API client (Google Drive example)
-service = build('drive', 'v3', credentials=credentials)
+def get_drive_service():
+    print("Get_drive")
+    """Return an authenticated Google Drive service instance."""
+    if 'credentials' not in session:
+        raise ValueError("No credentials found in session. User must authorize access.")
+    credentials_data = json.loads(session['credentials'])
+    credentials = Credentials.from_authorized_user_info(credentials_data, SCOPES)
+    return build('drive', 'v3', credentials=credentials)
 
-# Get information about the authenticated account
-about = service.about().get(fields="user").execute()
-user_email = about['user']['emailAddress']
 
-print(f"Currently authenticated as: {user_email}")
+@app.route('/')
+def home():
+    """Home route."""
+    if 'credentials' not in session:
+        return redirect(url_for('authorize'))
 
-def get_folder_id_by_name(folder_name):
-    """
-    Check if a folder exists in Google Drive by its name.
-    If found, return the folder ID; otherwise, return None.
-    """
+    service = get_drive_service()
+
+    # Example: Listing files in Google Drive
+    results = service.files().list(pageSize=10, fields="files(id, name)").execute()
+    files = results.get('files', [])
+    return f"Logged in! Files: {files}"
+
+
+@app.route('/authorize')
+def authorize():
+    """Step 1: Redirect to Google's OAuth2 server."""
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true'
+    )
+    session['state'] = state
+    return redirect(authorization_url)
+
+
+@app.route('/oauth2callback')
+def oauth2callback():
+    """Step 2: Handle the callback from Google's OAuth2 server."""
+    flow.fetch_token(authorization_response=request.url)
+    credentials = flow.credentials
+    session['credentials'] = credentials.to_json()
+    return redirect(url_for('home'))
+
+
+def get_folder_id_by_name(service, folder_name):
+    """Check if a folder exists in Google Drive by its name."""
     query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder'"
     results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
     files = results.get('files', [])
     if files:
-        print(f"Folder '{folder_name}' exists with ID: {files[0]['id']}")
         return files[0]['id']
-    print(f"Folder '{folder_name}' does not exist.")
     return None
 
-def create_folder(folder_name):
-    """
-    Create a new folder in Google Drive.
-    """
-    folder_metadata = {
-        'name': folder_name,
-        'mimeType': 'application/vnd.google-apps.folder'
-    }
-    folder = service.files().create(body=folder_metadata, fields='id').execute()
-    print(f"Folder '{folder_name}' created with ID: {folder.get('id')}")
-    return folder.get('id')
-def create_folder_hierarchy(parent_folder_id, folder_name):
-    """
-    Create a new folder as a subfolder under the parent folder.
-    """
+
+def create_folder(service, folder_name, parent_folder_id=None):
+    """Create a new folder in Google Drive."""
     folder_metadata = {
         'name': folder_name,
         'mimeType': 'application/vnd.google-apps.folder',
-        'parents': [parent_folder_id]  # Specify the parent folder ID
     }
+    if parent_folder_id:
+        folder_metadata['parents'] = [parent_folder_id]
+
     folder = service.files().create(body=folder_metadata, fields='id').execute()
-    print(f"Folder '{folder_name}' created with ID: {folder.get('id')}")
     return folder.get('id')
 
-def check_and_create_folder(df, year, month):
+
+def check_and_create_folder(service, df, year, month):
     """
-    Check if folders exist and create a folder hierarchy.
+    Check if folders exist and create a folder hierarchy based on year, month, state, and city.
     """
     city = df.at[0, 'ZONA/CD']
     state = df.at[0, 'ESTADO']
-    print("Checking folders", year, month, state, city)
+
     # Start by creating year and month folders
-    year_folder_id = get_folder_id_by_name(year)
+    year_folder_id = get_folder_id_by_name(service, year) or create_folder(service, year)
+    month_folder_id = get_folder_id_by_name(service, month) or create_folder(service, month, year_folder_id)
+    state_folder_id = get_folder_id_by_name(service, state) or create_folder(service, state, month_folder_id)
+    city_folder_id = get_folder_id_by_name(service, city) or create_folder(service, city, state_folder_id)
 
-    if not year_folder_id:
-        year_folder_id = create_folder(year)
-    print(f"Year folder: {year} (ID: {year_folder_id})")
+    return {
+        "year_folder_id": year_folder_id,
+        "month_folder_id": month_folder_id,
+        "state_folder_id": state_folder_id,
+        "city_folder_id": city_folder_id
+    }
 
-    month_folder_id = get_folder_id_by_name(month)
-    if not month_folder_id:
-        month_folder_id = create_folder_hierarchy(year_folder_id, month)  # Create month under year
-    print(f"Month folder: {month} (ID: {month_folder_id})")
-
-    state_folder_id = get_folder_id_by_name(state)
-    if not state_folder_id:
-        state_folder_id = create_folder_hierarchy(month_folder_id, state)  # Create state under month
-    print(f"State folder: {state} (ID: {state_folder_id})")
-
-    city_folder_id = get_folder_id_by_name(city)
-    if not city_folder_id:
-        city_folder_id = create_folder_hierarchy(state_folder_id, city)  # Create city under state
-    print(f"City folder: {city} (ID: {city_folder_id})")
-    return 200
+@app.route('/process-folders')
+def process_folders(row_df, year, month):
+    try:
+        print("Access to Google")
+        service = get_drive_service()
+        print('Access confirmed')
+        folder_hierarchy = check_and_create_folder(service, row_df, year, month)
+        return f"Folder hierarchy created: {folder_hierarchy}"
+    except Exception as e:
+        return f"Error: {e}"
 
 # ---------------------------------------------DATABASE FUNCTIONS-------------------------------------------------------
 def service_logs():
@@ -452,7 +470,7 @@ def update_services(df, message_id, date, hour, date_obj):
             print("Row_df", row_df)
             print(year)
             print(month)
-            check_and_create_folder(row_df, year, month)  # Call the folders function
+            process_folders(row_df, year, month)  # Call the folders function
             print('Single row was updated')
             return 200
     except Exception as e:
