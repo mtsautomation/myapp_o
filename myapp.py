@@ -342,9 +342,11 @@ def oauth2callback():
 
 def get_folder_id_by_name(service, folder_name):
     """Check if a folder exists in Google Drive by its name."""
+    print(f'Looking for folder {folder_name}')
     query = f"name = '{folder_name}' and mimeType = 'application/vnd.google-apps.folder'"
     results = service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
     files = results.get('files', [])
+    print(f'File found:  {files}')
     if files:
         return files[0]['id']
     return None
@@ -352,6 +354,7 @@ def get_folder_id_by_name(service, folder_name):
 
 def create_folder(service, folder_name, parent_folder_id=None):
     """Create a new folder in Google Drive."""
+    print(f"Will create a folder {folder_name}")
     folder_metadata = {
         'name': folder_name,
         'mimeType': 'application/vnd.google-apps.folder',
@@ -360,6 +363,7 @@ def create_folder(service, folder_name, parent_folder_id=None):
         folder_metadata['parents'] = [parent_folder_id]
 
     folder = service.files().create(body=folder_metadata, fields='id').execute()
+    print(f"Folder created{folder.get('id')}")
     return folder.get('id')
 
 
@@ -367,6 +371,7 @@ def check_and_create_folder(service, df, year, month):
     """
     Check if folders exist and create a folder hierarchy based on year, month, state, and city.
     """
+    print('Cheking folders')
     city = df.at[0, 'ZONA/CD']
     state = df.at[0, 'ESTADO']
 
