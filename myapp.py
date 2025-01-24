@@ -291,6 +291,7 @@ def get_drive_service():
         raise ValueError("No credentials found in session. User must authorize access.")
     credentials_data = json.loads(session['credentials'])
     credentials = Credentials.from_authorized_user_info(credentials_data, SCOPES)
+    print("Credentiales returned")
     return build('drive', 'v3', credentials=credentials)
 
 
@@ -301,10 +302,12 @@ def home():
         return redirect(url_for('authorize'))
 
     service = get_drive_service()
-
+    print("Service", service)
     # Example: Listing files in Google Drive
     results = service.files().list(pageSize=10, fields="files(id, name)").execute()
+
     files = results.get('files', [])
+    print(files)
     return f"Logged in! Files: {files}"
 
 
