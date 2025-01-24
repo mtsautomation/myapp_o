@@ -289,6 +289,7 @@ def get_drive_service():
     """Return an authenticated Google Drive service instance."""
     if 'credentials' not in session:
         raise ValueError("No credentials found in session. User must authorize access.")
+    print(session['credentials'])
     credentials_data = json.loads(session['credentials'])
     print(credentials_data)
     credentials = Credentials.from_authorized_user_info(credentials_data, SCOPES)
